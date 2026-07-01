@@ -220,6 +220,56 @@ CARDS = [
     Card("vpc-q28", 14, "VPC", "Which VPC setting helps EC2 instances receive public DNS names when they have public IPs?", "DNS hostnames.", "Enable DNS hostnames on a VPC."),
     Card("vpc-q29", 14, "VPC", "What VPC feature can customize DNS servers handed to instances?", "DHCP options set.", "Configure a custom DHCP options set."),
     Card("vpc-q30", 14, "VPC", "What is the safest default architecture for databases in a VPC?", "Place databases in private subnets with restrictive security groups.", "Move a database into a private subnet."),
+    # --- AWS Global Footprint (AWS basics) ---
+    Card("gf-q1", 1, "AWS basics", "What is an AWS edge location?", "An edge location is an AWS site meant to deliver content with the lowest possible latency, closer to end users than Regions and AZs. Edge locations use points of presence and regional edge caches.", "Explain why CloudFront uses edge locations instead of a Region."),
+    Card("gf-q2", 1, "AWS basics", "Why do AWS Regions provide the greatest fault tolerance and stability?", "Each Region is a completely separate geographic area hosting its own AWS data centers, so a problem in one Region does not affect workloads deployed in another Region.", "Deploy the same workload to two Regions for isolation."),
+    Card("gf-q3", 1, "AWS basics", "Why are Availability Zones physically separate?", "AZs are isolated, independent locations within a Region with their own redundant power, networking, and low-latency links. Physical separation reduces the impact of a single disaster.", "Spread instances across AZs to survive one AZ failure."),
+    Card("gf-q4", 1, "AWS basics", "In the shared responsibility model, what is security IN the cloud?", "Security in the cloud is the customer's responsibility: encrypting customer data, backing up customer data, and controlling access and authorization.", "List which security tasks belong to the customer."),
+    Card("gf-q5", 1, "AWS basics", "In the shared responsibility model, what is security OF the cloud?", "Security of the cloud is AWS's responsibility: the software behind AWS services and the physical security and redundancy of the infrastructure.", "List which security tasks belong to AWS."),
+    # --- Well-Architected Framework (new topic) ---
+    Card("waf-q1", 1, "Well-Architected Framework", "What is the AWS Well-Architected Framework?", "It is a set of principles and best practices you should aim to apply to all AWS-based workloads, organized into six pillars.", "Name a design decision that improves a pillar in your workload."),
+    Card("waf-q2", 1, "Well-Architected Framework", "What are the six pillars of the Well-Architected Framework?", "Operational Excellence, Security, Reliability, Performance Efficiency, Cost Optimization, and Sustainability.", "Recite the six pillars from memory."),
+    Card("waf-q3", 1, "Well-Architected Framework", "What is the Operational Excellence pillar?", "The ability to support development, run workloads effectively, gain insight into operations, and continuously improve supporting processes to deliver business value. Example: operations as code, small frequent changes, using managed services.", "Turn a manual task into operations as code."),
+    Card("waf-q4", 1, "Well-Architected Framework", "What is the Security pillar?", "Taking advantage of cloud technologies to protect data, systems, and assets. Example: maintaining traceability, applying security in layers, encrypting data in transit and at rest, and keeping people away from data.", "Add a layer of security to one workload."),
+    Card("waf-q5", 1, "Well-Architected Framework", "What is the Reliability pillar?", "The ability for a workload to perform correctly and consistently and to recover quickly. Example: automating recovery from failure, testing recovery procedures, and scaling horizontally.", "Design an automated recovery step for a failure."),
+    Card("waf-q6", 1, "Well-Architected Framework", "What is the Performance Efficiency pillar?", "The ability to use the correct computing resources and maintain efficiency as scaling demands change (remove bottlenecks, reduce waste). Example: using serverless architecture, deploying globally using Regions, and experimenting often.", "Pick a service that removes a scaling bottleneck."),
+    Card("waf-q7", 1, "Well-Architected Framework", "What is the Cost Optimization pillar?", "The ability to run systems that deliver business value at the lowest price point (spend only what you have to). Example: adopting a consumption model, measuring overall efficiency, and letting AWS handle the heavy lifting of infrastructure.", "Find one workload that could spend less."),
+    Card("waf-q8", 1, "Well-Architected Framework", "What is the Sustainability pillar?", "The ability to continually improve sustainability impact by reducing energy consumption, increasing efficiency across components, maximizing benefits from provisioned resources, and minimizing total resources required. Example: understand your impact, maximize utilization, use managed services.", "Identify a way to raise utilization and cut waste."),
+    # --- High Availability & Fault Tolerance (new topic) ---
+    Card("ha-q1", 1, "High availability and fault tolerance", "What is high availability?", "Systems designed to remain operational for long periods, where failures typically result in minimal downtime or brief interruptions, using redundancy and failover mechanisms to recover quickly.", "Add redundancy so one failure causes minimal downtime."),
+    Card("ha-q2", 1, "High availability and fault tolerance", "What uptime goal is commonly associated with high availability?", "A goal of about 99.99% uptime.", "State the HA uptime target."),
+    Card("ha-q3", 1, "High availability and fault tolerance", "How is high availability achieved in AWS?", "Through redundancy and failover, such as deploying across multiple Availability Zones (Multi-AZ), load balancing, and Auto Scaling to replace failed components.", "Draw a Multi-AZ design that survives one AZ loss."),
+    Card("ha-q4", 1, "High availability and fault tolerance", "How does fault tolerance differ from high availability?", "High availability minimizes downtime and recovers quickly from failures, while fault tolerance lets a system keep operating with no downtime even when a component fails.", "Classify a design as HA versus fault tolerant."),
+    # --- IAM overview (IAM) ---
+    Card("iam-q1", 2, "IAM", "What is AWS IAM?", "AWS Identity and Access Management is a unique authentication database that is logically isolated to one AWS account. It lets you create users, groups, and roles and control access to AWS resources and services.", "Explain that IAM is scoped to one account."),
+    Card("iam-q2", 2, "IAM", "What is the AWS root account and how should it be secured?", "The root account is the email address used to sign up for AWS and has full administrative access. Immediately turn on MFA, avoid using it for normal tasks, and do not create access keys for it.", "List the three root account do's and don'ts."),
+    Card("iam-q3", 2, "IAM", "What is an IAM group and can a user belong to more than one?", "An IAM group is a collection of IAM users used to simplify permission management. A user can belong to multiple IAM groups at once, and groups can contain users only.", "Group users by job function."),
+    Card("iam-q4", 2, "IAM", "What long-term credentials do IAM users have?", "IAM users authenticate with a username and password (console) or with static IAM access keys (programmatic).", "Identify the two IAM user credential types."),
+    Card("iam-q5", 2, "IAM", "What permissions does a new IAM identity start with?", "New IAM identities always start with zero permissions; access is implicitly denied until a policy grants it.", "Remember that access must be explicitly granted."),
+    # --- IAM Policies (IAM advanced) ---
+    Card("iampol-q1", 3, "IAM advanced", "What is an IAM policy?", "A policy is an object in AWS that, when associated with an identity or resource, defines their permissions.", "Attach a policy and describe what it allows."),
+    Card("iampol-q2", 3, "IAM advanced", "How are identity-based policies written and stored?", "They are attached to IAM identities to grant permissions and are written and stored as JSON documents. By default, permissions are implicitly denied.", "Read the Effect, Action, and Resource of a JSON policy."),
+    Card("iampol-q3", 3, "IAM advanced", "What are the two forms of identity-based policies?", "Managed policies and inline policies.", "Decide managed versus inline for a reusable policy."),
+    Card("iampol-q4", 3, "IAM advanced", "What are managed policies?", "Attachable, standalone, reusable policies that are given a resource ARN after creation. They come in two kinds: AWS managed policies (created and managed by AWS, usable by everyone) and customer managed policies (you create, manage, and reuse them however you want).", "Choose a customer managed policy for custom least privilege."),
+    Card("iampol-q5", 3, "IAM advanced", "What is an inline policy?", "An inline policy is embedded directly into a single user, group, or role. It is not standalone or reusable and is deleted when the identity is deleted.", "Use inline only for a one-off permission."),
+    Card("iampol-q6", 3, "IAM advanced", "What is a resource-based policy?", "A resource-based policy is attached directly to a resource (such as an S3 bucket or Lambda function) and specifies which principals may access that resource.", "Write a bucket policy that names an allowed principal."),
+    Card("iampol-q7", 3, "IAM advanced", "What are the high-priority factors in IAM access evaluation?", "Know the order: an explicit deny always wins, then Service Control Policies, then resource-based policies, and permission boundaries and identity-based allows must also permit the action.", "Trace why an allowed principal is still denied."),
+    Card("iampol-q8", 3, "IAM advanced", "Which IAM condition keys are commonly tested?", "ExternalId, aws:MultiFactorAuthPresent, aws:SourceIp, and aws:PrincipalOrgID.", "Add a condition requiring MFA or a source IP range."),
+    # --- Directory Services (new topic) ---
+    Card("ds-q1", 3, "Directory services", "What does AWS Directory Service provide?", "It provides several options to set up and run Microsoft Active Directory (AD) with other AWS services, offloading the painful parts of keeping AD on-premises while still giving you the control and flexibility of AD.", "Match a directory need to a Directory Service option."),
+    Card("ds-q2", 3, "Directory services", "What is AWS Managed Microsoft AD?", "It is the entire Active Directory suite run and managed by AWS, and it supports trusts with an existing on-premises Active Directory.", "Choose Managed Microsoft AD when full AD features are needed."),
+    Card("ds-q3", 3, "Directory services", "What is AD Connector?", "AD Connector is a directory gateway that redirects directory requests to your on-premises Active Directory without caching information in the cloud.", "Use AD Connector to reuse an existing on-prem AD."),
+    Card("ds-q4", 3, "Directory services", "What is Simple AD?", "Simple AD is a standalone, Samba-based directory that is compatible with basic Active Directory features, at low cost.", "Pick Simple AD for basic, low-cost directory needs."),
+    # --- VPC fundamentals & peering additions (VPC) ---
+    Card("vpc-q31", 14, "VPC", "How should you think about an Amazon VPC?", "Think of a VPC as your very own virtual data center network in the cloud: a logically isolated part of AWS where you control the IP address ranges, subnets, route tables, and network gateways.", "Describe your VPC as a private cloud network."),
+    Card("vpc-q32", 14, "VPC", "How is a default VPC created and what is its CIDR?", "A default VPC is automatically created by AWS when you create an AWS account, with a default CIDR of 172.31.0.0/16.", "Recall the default VPC CIDR block."),
+    Card("vpc-q33", 14, "VPC", "What is a custom VPC?", "A custom VPC is created by you with a custom CIDR block range, giving more granular control over your network.", "Choose a custom CIDR for a new environment."),
+    Card("vpc-q34", 14, "VPC", "What IPv4 CIDR block sizes are allowed for a VPC?", "A private IPv4 CIDR block is required and can range from /16 to /28.", "Pick a valid IPv4 CIDR size for a VPC."),
+    Card("vpc-q35", 14, "VPC", "What IPv6 CIDR block sizes are allowed for a VPC?", "An IPv6 CIDR block is optional and ranges from /44 to /60.", "Note that IPv6 CIDR is optional on a VPC."),
+    Card("vpc-q36", 14, "VPC", "What are the important components of a VPC?", "CIDR block, subnets, route tables, security groups, network ACLs, and network gateways.", "Label these components in a VPC diagram."),
+    Card("vpc-q37", 14, "VPC", "What is VPC peering and where does its traffic stay?", "VPC peering enables secure, direct communication between VPCs so private resources can interact. Traffic remains within the AWS network infrastructure and there is no single point of failure for the connection.", "Connect two VPCs privately with peering."),
+    Card("vpc-q38", 14, "VPC", "What scopes can VPC peering connect?", "Peering can connect VPCs cross-account, in the same account, and even cross-Region.", "List the three peering scopes."),
+    Card("vpc-q39", 14, "VPC", "What are common VPC peering use cases?", "A centralized shared-services VPC, multi-Region internal application deployment, and cross-account VPC integration for collaboration or a merger/acquisition.", "Match a scenario to a peering use case."),
 ]
 
 
@@ -364,10 +414,13 @@ def interactive_menu(progress: dict) -> None:
         print("4. IAM flashcards")
         print("5. EC2 flashcards")
         print("6. VPC flashcards")
-        print("7. Review missed cards")
-        print("8. Show topics")
-        print("9. Show progress")
-        print("10. Reset progress")
+        print("7. Well-Architected Framework flashcards")
+        print("8. High availability & fault tolerance flashcards")
+        print("9. Directory Services flashcards")
+        print("10. Review missed cards")
+        print("11. Show topics")
+        print("12. Show progress")
+        print("13. Reset progress")
         print("0. Exit")
         choice = input("Choose an option: ").strip()
 
@@ -391,12 +444,21 @@ def interactive_menu(progress: dict) -> None:
                 count = read_count()
                 run_quiz(select_cards(topic="VPC"), shuffle=True, limit=count, progress=progress)
             elif choice == "7":
-                run_quiz(select_cards(missed_only=True, progress=progress), shuffle=True, limit=None, progress=progress)
+                count = read_count()
+                run_quiz(select_cards(topic="Well-Architected"), shuffle=True, limit=count, progress=progress)
             elif choice == "8":
-                print_topics()
+                count = read_count()
+                run_quiz(select_cards(topic="High availability"), shuffle=True, limit=count, progress=progress)
             elif choice == "9":
-                print_stats(progress)
+                count = read_count()
+                run_quiz(select_cards(topic="Directory"), shuffle=True, limit=count, progress=progress)
             elif choice == "10":
+                run_quiz(select_cards(missed_only=True, progress=progress), shuffle=True, limit=None, progress=progress)
+            elif choice == "11":
+                print_topics()
+            elif choice == "12":
+                print_stats(progress)
+            elif choice == "13":
                 confirm = input("Reset all saved progress? Type RESET to confirm: ").strip()
                 if confirm == "RESET":
                     progress.clear()
