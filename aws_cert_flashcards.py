@@ -270,6 +270,15 @@ CARDS = [
     Card("vpc-q37", 14, "VPC", "What is VPC peering and where does its traffic stay?", "VPC peering enables secure, direct communication between VPCs so private resources can interact. Traffic remains within the AWS network infrastructure and there is no single point of failure for the connection.", "Connect two VPCs privately with peering."),
     Card("vpc-q38", 14, "VPC", "What scopes can VPC peering connect?", "Peering can connect VPCs cross-account, in the same account, and even cross-Region.", "List the three peering scopes."),
     Card("vpc-q39", 14, "VPC", "What are common VPC peering use cases?", "A centralized shared-services VPC, multi-Region internal application deployment, and cross-account VPC integration for collaboration or a merger/acquisition.", "Match a scenario to a peering use case."),
+    Card("vpc-q40", 14, "VPC", "AWS Transit Gateway: what is it, when do you use it, and why?", "What: a regional network hub that connects many VPCs and on-premises networks (VPN/Direct Connect) through a single central gateway, with transitive routing. When: when you have many VPCs and/or hybrid connections and a full peering mesh becomes hard to manage. Why: peering is not transitive and a mesh grows to N-squared connections, so a hub-and-spoke Transit Gateway simplifies routing and scales connectivity centrally.", "Replace a tangled peering mesh with one Transit Gateway hub."),
+    Card("vpc-q41", 14, "VPC", "AWS Site-to-Site VPN: what is it, when do you use it, and why?", "What: an encrypted IPsec tunnel connecting an on-premises network to a VPC over the public internet. When: when you need hybrid connectivity quickly and can tolerate internet-based performance. Why: it is fast to set up and low cost compared to dedicated links, and encryption keeps traffic private even though it traverses the public internet.", "Choose VPN for a quick, encrypted hybrid link."),
+    Card("vpc-q42", 14, "VPC", "Gateway VPC endpoint: what is it, when do you use it, and why?", "What: a VPC endpoint that adds a route-table target to reach S3 and DynamoDB privately. When: when private-subnet resources need to reach S3 or DynamoDB without internet routing. Why: traffic stays on the AWS network instead of going through an internet or NAT gateway, improving security and avoiding NAT data-processing cost. It is also free.", "Add an S3 gateway endpoint route to a private subnet's route table."),
+    Card("vpc-q43", 14, "VPC", "DHCP options set: what is it, when do you use it, and why?", "What: a VPC configuration that controls the DHCP settings handed to instances, such as domain name and DNS servers. When: when you need instances to use custom DNS servers or a specific domain name (for example, to resolve on-premises hostnames). Why: it lets you override the default Amazon-provided DNS so instances integrate with your own naming and resolution.", "Configure a custom DHCP options set pointing at your DNS servers."),
+    Card("vpc-q44", 14, "VPC", "AWS Direct Connect: what is it, when do you use it, and why?", "What: a dedicated, private physical network link between your data center and AWS. When: when you need consistent, high-throughput hybrid connectivity and predictable latency for steady traffic. Why: it bypasses the public internet, giving more reliable performance and often lower data-transfer cost than internet-based VPN for large, ongoing workloads.", "Choose Direct Connect for steady, high-volume hybrid traffic."),
+    Card("vpc-q45", 14, "VPC", "VPC DNS hostnames: what are they, when do you enable them, and why?", "What: a VPC setting that gives instances public DNS hostnames when they have public IP addresses. When: enable it when instances need to be reachable or identified by a public DNS name rather than only by IP. Why: it lets other services and users resolve instances by name, which is required for many public-facing and name-based access patterns.", "Enable DNS hostnames on a VPC hosting public instances."),
+    Card("vpc-q46", 14, "VPC", "S3 gateway VPC endpoint: what is it, when do you use it, and why?", "What: a gateway-type VPC endpoint specifically for private access to Amazon S3 via route-table entries. When: when instances in a private subnet must read from or write to S3 without a NAT gateway or internet gateway. Why: it keeps S3 traffic inside the AWS network for better security, removes exposure to the internet, and avoids NAT processing charges (the endpoint itself is free).", "Add an S3 gateway endpoint so a private subnet reaches S3 without internet routing."),
+    Card("vpc-q47", 14, "VPC", "VPC Reachability Analyzer: what is it, when do you use it, and why?", "What: a network diagnostic tool that analyzes the configured path between two resources and reports whether traffic can reach the destination. When: when you are troubleshooting connectivity or want to validate a path before deploying. Why: it inspects security groups, NACLs, route tables, and gateways to pinpoint exactly where a path is blocked, without sending real packets.", "Run a reachability check between two instances to find a blocked hop."),
+    Card("vpc-q48", 14, "VPC", "AWS PrivateLink and interface VPC endpoints: what are they, when do you use them, and why?", "What: an interface VPC endpoint creates an elastic network interface with a private IP in your subnet, and AWS PrivateLink uses it to privately connect to AWS services, partner services, or your own services. When: when you need private access to a service that is not supported by gateway endpoints, or to expose your own service to consumers privately. Why: traffic never leaves the AWS network and consumers reach the service by private IP, avoiding public internet exposure and overlapping-CIDR problems.", "Add an interface endpoint so a private subnet reaches an AWS service over PrivateLink."),
 ]
 
 
@@ -343,6 +352,36 @@ def show_card_header(card: Card, index: int, total: int) -> None:
     print("-" * WRAP_WIDTH)
 
 
+def run_round(cards: list[Card], progress: dict) -> tuple[list[Card], int, bool]:
+    """Run one pass over the cards. Returns (missed cards, reviewed count, quit early)."""
+    missed: list[Card] = []
+    reviewed = 0
+    for index, card in enumerate(cards, start=1):
+        show_card_header(card, index, len(cards))
+        print(wrapped("Question: " + card.question, indent=10))
+        response = input("\n(Press Enter to reveal the answer, or q to quit)\n").strip().lower()
+        if response == "q":
+            return missed, reviewed, True
+
+        print("\n" + wrapped("Answer: " + card.answer, indent=8))
+
+        while True:
+            verdict = input("\nDid you get it right? (y = correct, n = missed, q = quit): ").strip().lower()
+            if verdict in ("y", "yes", "n", "no", "q"):
+                break
+            print("Please enter y, n, or q.")
+        if verdict == "q":
+            return missed, reviewed, True
+
+        correct = verdict in ("y", "yes")
+        record_answer(progress, card, correct)
+        save_progress(progress)
+        reviewed += 1
+        if not correct:
+            missed.append(card)
+    return missed, reviewed, False
+
+
 def run_quiz(cards: list[Card], *, shuffle: bool, limit: int | None, progress: dict) -> None:
     if shuffle:
         random.shuffle(cards)
@@ -352,23 +391,35 @@ def run_quiz(cards: list[Card], *, shuffle: bool, limit: int | None, progress: d
         print("No cards matched that selection.")
         return
 
-    reviewed_count = 0
-    print(f"\nStarting quiz with {len(cards)} card(s). Type q at a prompt to quit.")
-    for index, card in enumerate(cards, start=1):
-        show_card_header(card, index, len(cards))
-        print(wrapped("Question: " + card.question, indent=10))
-        response = input("\n" + "-" * WRAP_WIDTH + "\n").strip().lower()
-        if response == "q":
+    round_number = 1
+    while cards:
+        if round_number == 1:
+            print(f"\nStarting quiz with {len(cards)} card(s). Type q at a prompt to quit.")
+        else:
+            print(f"\nRerunning {len(cards)} missed card(s). Type q at a prompt to quit.")
+
+        missed, reviewed, quit_early = run_round(cards, progress)
+
+        print("\nRound complete.")
+        print(f"Cards reviewed: {reviewed}/{len(cards)}")
+        print(f"Correct: {reviewed - len(missed)}   Incorrect: {len(missed)}")
+
+        if quit_early:
+            break
+        if not missed:
+            if round_number > 1:
+                print("\nNice work - you cleared every missed card.")
             break
 
-        print("\n" + wrapped("Answer: " + card.answer, indent=8))
-        reviewed_count += 1
-        cont = input("\n" + "-" * WRAP_WIDTH + "\n").strip().lower()
-        if cont == "q":
+        choice = input(f"\nRerun the {len(missed)} card(s) you missed? (y/n): ").strip().lower()
+        if choice not in ("y", "yes"):
             break
+        cards = missed
+        if shuffle:
+            random.shuffle(cards)
+        round_number += 1
 
     print("\nSession complete.")
-    print(f"Cards reviewed: {reviewed_count}/{len(cards)}")
 
 
 def print_topics() -> None:
