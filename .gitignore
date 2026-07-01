@@ -5,5 +5,6 @@ __pycache__/
 # Playwright MCP scratch output
 .playwright-mcp/
 
-# Local flashcard progress (personal study data)
+# Local flashcard progress and user-edited cards (personal study data)
 aws_flashcard_progress.json
+aws_flashcard_cards.json

@@ -347,6 +347,21 @@ CARDS = [
     # Migration & Transfer
     Card("svc-q40", 0, "Service Definitions", "AWS Snow Family (Snowball, Snowcone, Snowmobile): definition and use case?", "Physical devices for transferring large amounts of data into or out of AWS when network transfer is impractical. Use for petabyte-scale data migration and edge computing in disconnected environments.", "Choose Snow devices when the network is too slow."),
     Card("svc-q41", 0, "Service Definitions", "AWS DMS (Database Migration Service): definition and use case?", "Migrates databases to AWS with minimal downtime, supporting homogeneous and heterogeneous migrations. Use for moving on-prem databases to RDS/Aurora, often paired with the Schema Conversion Tool (SCT) for engine changes.", "Pair DMS with SCT for a cross-engine migration."),
+    # --- Shared Responsibility Model ---
+    Card("srm-q1", 1, "Shared Responsibility Model", "What is the AWS Shared Responsibility Model?", "A model that divides security duties between AWS and the customer: AWS is responsible for security OF the cloud (the infrastructure that runs the services), and the customer is responsible for security IN the cloud (their data and configuration).", "State who owns 'of' versus 'in' the cloud."),
+    Card("srm-q2", 1, "Shared Responsibility Model", "What does 'security OF the cloud' cover, and who owns it?", "AWS owns it. It covers the infrastructure that runs AWS services: physical data centers, hardware, networking, and the virtualization/host software plus managed-service infrastructure.", "List AWS-owned layers of the stack."),
+    Card("srm-q3", 1, "Shared Responsibility Model", "What does 'security IN the cloud' cover, and who owns it?", "The customer owns it. It covers what the customer puts in and configures: their data, encryption choices, IAM users/roles/permissions, and for EC2 the guest OS, patches, and network/firewall configuration.", "List customer-owned responsibilities."),
+    Card("srm-q4", 1, "Shared Responsibility Model", "Who is responsible for the physical security of AWS data centers?", "AWS. Physical security and infrastructure redundancy are part of security OF the cloud.", "Assign physical security to AWS."),
+    Card("srm-q5", 1, "Shared Responsibility Model", "Who patches the guest operating system on an EC2 instance?", "The customer. Guest OS patching and configuration are the customer's responsibility for IaaS like EC2.", "Assign guest OS patching to the customer."),
+    Card("srm-q6", 1, "Shared Responsibility Model", "Who patches the underlying host, hypervisor, and hardware?", "AWS, as part of securing the infrastructure that runs the services.", "Assign host/hypervisor patching to AWS."),
+    Card("srm-q7", 1, "Shared Responsibility Model", "Who manages IAM users, roles, and permissions?", "The customer. Controlling access and authorization is a customer responsibility.", "Assign IAM/access control to the customer."),
+    Card("srm-q8", 1, "Shared Responsibility Model", "Who is responsible for encrypting customer data and choosing encryption settings?", "The customer. AWS provides encryption tools and key services, but the customer decides what to encrypt and how.", "Assign data encryption choices to the customer."),
+    Card("srm-q9", 1, "Shared Responsibility Model", "Who configures security groups, network ACLs, and firewall rules?", "The customer. Network and firewall configuration is part of security IN the cloud.", "Assign SG/NACL configuration to the customer."),
+    Card("srm-q10", 1, "Shared Responsibility Model", "How does responsibility shift for managed/abstracted services such as S3, DynamoDB, and Lambda?", "AWS takes on more (operating system, patching, and platform infrastructure), while the customer still owns their data, access policies, and encryption configuration.", "Explain the shift for a managed service."),
+    Card("srm-q11", 1, "Shared Responsibility Model", "Where is customer responsibility greatest: IaaS like EC2 or abstracted managed services?", "Greatest with IaaS like EC2 (OS, patching, network, firewall). It is smaller with abstracted/managed services, where AWS handles the OS and platform.", "Rank responsibility by service model."),
+    Card("srm-q12", 1, "Shared Responsibility Model", "What are 'shared controls' in the model?", "Controls both parties handle from their own side, such as patch management, configuration management, and awareness/training.", "Give an example of a shared control."),
+    Card("srm-q13", 1, "Shared Responsibility Model", "Who is responsible for backing up customer data?", "The customer, though AWS provides backup features and services to make it easier.", "Assign data backup to the customer."),
+    Card("srm-q14", 1, "Shared Responsibility Model", "Who ensures the durability and availability of the underlying storage infrastructure?", "AWS provides the durable, redundant infrastructure; the customer is responsible for how they use it, such as access policies, versioning, and replication settings.", "Split infra durability (AWS) from usage config (customer)."),
 ]
 
 
@@ -581,19 +596,20 @@ def interactive_menu(progress: dict) -> None:
         print("\nAWS SAA-C03 Flashcard Trainer")
         print("1. Random quiz")
         print("2. Quiz by topic search")
-        print("3. S3 flashcards")
-        print("4. IAM flashcards")
-        print("5. EC2 flashcards")
-        print("6. VPC flashcards")
-        print("7. Well-Architected Framework flashcards")
-        print("8. High availability & fault tolerance flashcards")
-        print("9. Directory Services flashcards")
-        print("10. Service Definitions flashcards")
-        print("11. Review missed cards")
-        print("12. Show topics")
-        print("13. Show progress")
-        print("14. Reset progress")
-        print("15. Launch visual flashcard mode (GUI)")
+        print("3. S3")
+        print("4. IAM")
+        print("5. EC2")
+        print("6. VPC")
+        print("7. Well-Architected Framework")
+        print("8. High availability & fault tolerance")
+        print("9. Directory Services")
+        print("10. Service Definitions")
+        print("11. Shared Responsibility Model")
+        print("12. Review missed cards")
+        print("13. Show topics")
+        print("14. Show progress")
+        print("15. Reset progress")
+        print("16. Launch visual flashcard mode (GUI)")
         print("0. Exit")
         choice = input("Choose an option: ").strip()
 
@@ -629,18 +645,21 @@ def interactive_menu(progress: dict) -> None:
                 count = read_count()
                 run_quiz(select_cards(topic="Service Definitions"), shuffle=True, limit=count, progress=progress)
             elif choice == "11":
-                run_quiz(select_cards(missed_only=True, progress=progress), shuffle=True, limit=None, progress=progress)
+                count = read_count()
+                run_quiz(select_cards(topic="Shared Responsibility"), shuffle=True, limit=count, progress=progress)
             elif choice == "12":
-                print_topics()
+                run_quiz(select_cards(missed_only=True, progress=progress), shuffle=True, limit=None, progress=progress)
             elif choice == "13":
-                print_stats(progress)
+                print_topics()
             elif choice == "14":
+                print_stats(progress)
+            elif choice == "15":
                 confirm = input("Reset all saved progress? Type RESET to confirm: ").strip()
                 if confirm == "RESET":
                     progress.clear()
                     save_progress(progress)
                     print("Progress reset.")
-            elif choice == "15":
+            elif choice == "16":
                 launch_gui(progress)
             elif choice == "0":
                 return
@@ -703,14 +722,15 @@ def launch_gui(progress: dict) -> bool:
     # Topic choices mirror the terminal menu items (label -> select_cards search term).
     topic_choices = [
         (ALL_TOPICS, None),
-        ("S3 flashcards", "S3"),
-        ("IAM flashcards", "IAM"),
-        ("EC2 flashcards", "EC2"),
-        ("VPC flashcards", "VPC"),
-        ("Well-Architected Framework flashcards", "Well-Architected"),
-        ("High availability & fault tolerance flashcards", "High availability"),
-        ("Directory Services flashcards", "Directory"),
-        ("Service Definitions flashcards", "Service Definitions"),
+        ("S3", "S3"),
+        ("IAM", "IAM"),
+        ("EC2", "EC2"),
+        ("VPC", "VPC"),
+        ("Well-Architected Framework", "Well-Architected"),
+        ("High availability & fault tolerance", "High availability"),
+        ("Directory Services", "Directory"),
+        ("Service Definitions", "Service Definitions"),
+        ("Shared Responsibility Model", "Shared Responsibility"),
     ]
     topic_search = dict(topic_choices)
     ttk.Label(top, text="Topic:").pack(side="left")
@@ -721,6 +741,14 @@ def launch_gui(progress: dict) -> bool:
     missed_var = tk.BooleanVar(value=False)
     ttk.Checkbutton(top, text="Review missed only", variable=missed_var,
                     command=lambda: rebuild_deck()).pack(side="left")
+
+    ttk.Label(top, text="Cards:").pack(side="left", padx=(12, 0))
+    count_var = tk.StringVar(value="All")
+    count_box = ttk.Combobox(top, textvariable=count_var, values=["All", "5", "10", "15", "20", "25", "50"],
+                             width=6)
+    count_box.pack(side="left", padx=(4, 0))
+    count_box.bind("<<ComboboxSelected>>", lambda e: rebuild_deck())
+    count_box.bind("<Return>", lambda e: rebuild_deck())
     ttk.Button(top, text="Shuffle", command=lambda: shuffle_deck()).pack(side="right")
     ttk.Button(top, text="Edit card", command=lambda: open_editor(current_card())).pack(side="right", padx=(6, 0))
     ttk.Button(top, text="New card", command=lambda: open_editor(None)).pack(side="right", padx=(6, 0))
@@ -843,18 +871,19 @@ def launch_gui(progress: dict) -> bool:
     def end_of_deck() -> None:
         deck = state["deck"]
         total = len(deck)
-        correct = sum(1 for c in deck if session_grades.get(c.id) is True)
-        missed = [c for c in deck if session_grades.get(c.id) is False]
+        # "Not correct" = everything the user did not mark correct (incorrect or skipped).
+        missed = [c for c in deck if session_grades.get(c.id) is not True]
+        correct = total - len(missed)
         if missed:
-            retry = messagebox.askyesno(
+            review = messagebox.askyesno(
                 "Deck complete",
                 f"You've gone through all {total} card(s).\n\n"
                 f"Correct: {correct}\n"
-                f"Incorrect: {len(missed)}\n\n"
-                f"Retry the {len(missed)} failed card(s)?\n"
-                f"(Yes = retry failed cards, No = quit)",
+                f"Not correct: {len(missed)}\n\n"
+                f"Review the {len(missed)} card(s) you did not get correct?\n"
+                f"(Yes = retake those cards, No = quit)",
             )
-            if retry:
+            if review:
                 random.shuffle(missed)
                 state["deck"] = missed
                 state["index"] = 0
@@ -864,7 +893,7 @@ def launch_gui(progress: dict) -> bool:
         else:
             quit_now = messagebox.askyesno(
                 "Deck complete",
-                f"You've gone through all {total} card(s) with no misses. Nice work!\n\n"
+                f"You've gone through all {total} card(s) and got them all correct. Nice work!\n\n"
                 f"Quit now?\n(No keeps the window open.)",
             )
             if quit_now:
@@ -884,15 +913,22 @@ def launch_gui(progress: dict) -> bool:
         topic = topic_search.get(topic_var.get())
         deck = select_cards(topic=topic, missed_only=missed_var.get(), progress=progress)
         random.shuffle(deck)  # present questions in random order
+        limit = count_var.get().strip()
+        if limit and limit.lower() != "all":
+            try:
+                n = int(limit)
+                if n > 0:
+                    deck = deck[:n]  # keep a random subset of the chosen size
+            except ValueError:
+                pass
         state["deck"] = deck
         state["index"] = 0
         show_card()
 
     def shuffle_deck() -> None:
+        # Draw a fresh random subset for the current topic and card count.
         commit_current()
-        random.shuffle(state["deck"])
-        state["index"] = 0
-        show_card()
+        rebuild_deck()
 
     def suggest_id() -> str:
         n = 1
