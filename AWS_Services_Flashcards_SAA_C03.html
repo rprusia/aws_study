@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AWS SAA-C03 Service Flashcards</title>
+  <link rel="icon" href="data:,">
+  <style>
+    :root {
+      --bg: #f7f8fa;
+      --panel: #ffffff;
+      --ink: #1f2937;
+      --muted: #667085;
+      --line: #d7dce3;
+      --accent: #2563eb;
+      --accent-dark: #1d4ed8;
+      --good: #047857;
+      --warn: #b45309;
+      --shadow: 0 18px 50px rgba(31, 41, 55, .12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+
+    main {
+      width: min(1120px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 24px 0 40px;
+    }
+
+    header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 10px 0 20px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.6rem, 3vw, 2.4rem);
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 8px 0 0;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(90px, 1fr));
+      gap: 8px;
+      min-width: 300px;
+    }
+
+    .stat {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 1.25rem;
+    }
+
+    .stat span {
+      display: block;
+      margin-top: 3px;
+      font-size: .78rem;
+      color: var(--muted);
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 14px;
+      align-items: center;
+      margin: 18px 0;
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    button {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--ink);
+      border-radius: 8px;
+      min-height: 42px;
+      padding: 0 14px;
+      font-size: .95rem;
+      cursor: pointer;
+    }
+
+    button:hover {
+      border-color: var(--accent);
+    }
+
+    button.active,
+    button.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    button.primary:hover {
+      background: var(--accent-dark);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .study-area {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 280px;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .card-shell {
+      min-height: 430px;
+      perspective: 1200px;
+    }
+
+    .flashcard {
+      position: relative;
+      width: 100%;
+      min-height: 430px;
+      transform-style: preserve-3d;
+      transition: transform .28s ease;
+      cursor: pointer;
+    }
+
+    .flashcard.flipped {
+      transform: rotateY(180deg);
+    }
+
+    .face {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 22px;
+      padding: clamp(24px, 4vw, 44px);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      backface-visibility: hidden;
+    }
+
+    .back {
+      transform: rotateY(180deg);
+    }
+
+    .service-label {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      min-height: 30px;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: .82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .prompt,
+    .answer {
+      font-size: clamp(1.35rem, 2.4vw, 2.35rem);
+      line-height: 1.22;
+      font-weight: 700;
+    }
+
+    .answer {
+      font-size: clamp(1.1rem, 2vw, 1.7rem);
+      font-weight: 600;
+    }
+
+    .hint {
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .known {
+      border-color: rgba(4, 120, 87, .4);
+      color: var(--good);
+    }
+
+    .review {
+      border-color: rgba(180, 83, 9, .4);
+      color: var(--warn);
+    }
+
+    aside {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    aside h2 {
+      margin: 0 0 10px;
+      font-size: 1rem;
+    }
+
+    .queue {
+      display: grid;
+      gap: 8px;
+      max-height: 420px;
+      overflow: auto;
+      padding-right: 3px;
+    }
+
+    .queue-item {
+      width: 100%;
+      text-align: left;
+      min-height: auto;
+      padding: 9px 10px;
+      line-height: 1.3;
+      font-size: .85rem;
+    }
+
+    .queue-item.current {
+      border-color: var(--accent);
+      box-shadow: inset 3px 0 0 var(--accent);
+    }
+
+    .kbd {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: .82rem;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 820px) {
+      header,
+      .toolbar,
+      .study-area {
+        grid-template-columns: 1fr;
+      }
+
+      header {
+        display: grid;
+      }
+
+      .stats {
+        min-width: 0;
+      }
+
+      .actions {
+        justify-content: flex-start;
+      }
+
+      .controls {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      aside {
+        order: -1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>AWS SAA-C03 Service Flashcards</h1>
+        <p class="subtitle">Interactive review cards for IAM, CloudFront, EventBridge, and AWS Backup.</p>
+      </div>
+      <div class="stats" aria-label="Progress summary">
+        <div class="stat"><strong id="position">1/1</strong><span>Current</span></div>
+        <div class="stat"><strong id="knownCount">0</strong><span>Known</span></div>
+        <div class="stat"><strong id="reviewCount">0</strong><span>Review</span></div>
+      </div>
+    </header>
+
+    <section class="toolbar" aria-label="Study controls">
+      <div class="filters" id="filters"></div>
+      <div class="actions">
+        <button id="shuffleBtn" type="button">Shuffle</button>
+        <button id="resetBtn" type="button">Reset Progress</button>
+      </div>
+    </section>
+
+    <section class="study-area">
+      <div>
+        <div class="card-shell">
+          <article class="flashcard" id="flashcard" tabindex="0" aria-live="polite">
+            <div class="face front">
+              <div>
+                <span class="service-label" id="frontService"></span>
+              </div>
+              <div class="prompt" id="question"></div>
+              <div class="card-footer">
+                <span id="frontTopic"></span>
+                <span>Click or press Space to flip</span>
+              </div>
+            </div>
+            <div class="face back">
+              <div>
+                <span class="service-label" id="backService"></span>
+              </div>
+              <div>
+                <div class="answer" id="answer"></div>
+                <p class="hint" id="note"></p>
+              </div>
+              <div class="card-footer">
+                <span id="backTopic"></span>
+                <span>Mark it, then move on</span>
+              </div>
+            </div>
+          </article>
+        </div>
+        <div class="controls">
+          <button id="prevBtn" type="button">Previous</button>
+          <button id="flipBtn" class="primary" type="button">Flip</button>
+          <button id="reviewBtn" class="review" type="button">Needs Review</button>
+          <button id="knownBtn" class="known" type="button">Know It</button>
+        </div>
+      </div>
+
+      <aside>
+        <h2>Card Queue</h2>
+        <div class="queue" id="queue"></div>
+        <div class="kbd">Keys: Space flips, Left/Right moves, K marks known, R marks review.</div>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const cards = [
+      { service: "IAM", topic: "Root user", q: "What is the exam-safe pattern for using the AWS root user?", a: "Enable MFA, do not create root access keys, and use the root user only for account-level tasks that require it.", n: "Daily administration should use IAM Identity Center or tightly controlled roles." },
+      { service: "IAM", topic: "Workload access", q: "An EC2 application needs to read one S3 bucket. What should you use?", a: "Attach an IAM role through an instance profile with least-privilege S3 read permissions.", n: "Do not store access keys on the instance, in code, or in configuration files." },
+      { service: "IAM", topic: "Policy types", q: "Which policy types grant access, which limit access, and which override access?", a: "Identity and resource policies grant. Permissions boundaries and SCPs limit. Explicit denies override allows.", n: "This shortcut answers many IAM troubleshooting questions." },
+      { service: "IAM", topic: "Trust policy", q: "What does a role trust policy define?", a: "Who or what can assume the role.", n: "A role also needs a permissions policy that defines what it can do after assumption." },
+      { service: "IAM", topic: "Cross-account", q: "What are the main pieces of a cross-account AssumeRole design?", a: "Role in the resource-owning account, trust policy for the external principal, role permissions for the resources, and caller permission for sts:AssumeRole.", n: "Third-party access should also require an external ID." },
+      { service: "IAM", topic: "External ID", q: "Why require an external ID for third-party role access?", a: "It reduces confused deputy risk when a vendor assumes a role in your account.", n: "Avoid IAM user access keys for vendors." },
+      { service: "IAM", topic: "Permissions boundary", q: "Developers can create IAM roles but must never create admin roles. What should you use?", a: "Permissions boundaries.", n: "A boundary sets the maximum permissions but does not grant permissions by itself." },
+      { service: "IAM", topic: "SCP", q: "How do you centrally prevent member accounts from disabling CloudTrail?", a: "Attach an SCP to the appropriate AWS Organizations root or OU.", n: "SCPs are guardrails; they limit maximum permissions but do not grant access." },
+      { service: "IAM", topic: "Identity Center", q: "Employees use a corporate IdP and need access to many AWS accounts. What is the best approach?", a: "IAM Identity Center integrated with the corporate IdP and AWS Organizations.", n: "Avoid creating IAM users in every account." },
+      { service: "IAM", topic: "Policy evaluation", q: "What wins in AWS policy evaluation?", a: "An explicit deny always wins.", n: "Without an explicit allow, the result is implicit deny." },
+      { service: "IAM", topic: "KMS access", q: "An IAM principal has S3 access but cannot read SSE-KMS objects. What else should you check?", a: "The KMS key policy and IAM permissions for the required KMS actions.", n: "KMS often requires both IAM permissions and key policy access." },
+      { service: "IAM", topic: "Federation", q: "Which STS operation is used for SAML federation?", a: "AssumeRoleWithSAML.", n: "AssumeRoleWithWebIdentity is used for OIDC/web identity federation." },
+      { service: "IAM", topic: "Role chaining", q: "What is the maximum session duration for role chaining?", a: "1 hour.", n: "This can appear in troubleshooting or design questions." },
+      { service: "IAM", topic: "IAM groups", q: "What can IAM groups contain?", a: "IAM users only.", n: "Groups cannot contain roles or other groups." },
+      { service: "IAM", topic: "Global service", q: "Is IAM Regional or global?", a: "IAM is global.", n: "IAM users and groups are scoped to an account." },
+
+      { service: "S3", topic: "Core use case", q: "When is Amazon S3 the best storage choice?", a: "Use S3 for durable object storage such as backups, logs, static assets, data lakes, media, and application files accessed by key.", n: "S3 is object storage, not block storage or a shared POSIX file system." },
+      { service: "S3", topic: "Bucket scope", q: "What must you remember about S3 bucket names and Regions?", a: "Bucket names are globally unique, and each bucket is created in one AWS Region.", n: "Objects stay in that Region unless you configure replication or copy them elsewhere." },
+      { service: "S3", topic: "Durability", q: "What durability does S3 advertise for objects?", a: "Eleven 9s of durability, or 99.999999999%, across multiple facilities for most S3 storage classes.", n: "Durability is not the same as availability." },
+      { service: "S3", topic: "Consistency", q: "What read consistency does S3 provide for object operations?", a: "Strong read-after-write consistency for PUT, GET, LIST, and metadata/tag/ACL changes.", n: "After a successful write, reads and lists reflect the change." },
+      { service: "S3", topic: "Public access", q: "What is the exam-safe default for public S3 access?", a: "Keep buckets private, enable S3 Block Public Access, and grant only required access through IAM, bucket policies, or CloudFront OAC.", n: "Public buckets are usually a red flag unless static website hosting explicitly requires it." },
+      { service: "S3", topic: "Bucket policy", q: "When should you use an S3 bucket policy?", a: "Use a bucket policy for resource-based access such as cross-account access, public website read access, CloudFront OAC, or organization-wide conditions.", n: "Identity policies attach to users, groups, or roles; bucket policies attach to buckets." },
+      { service: "S3", topic: "Versioning", q: "What does S3 Versioning protect against?", a: "Accidental overwrites and deletes by retaining multiple versions of an object.", n: "A normal delete creates a delete marker; previous versions can still be restored." },
+      { service: "S3", topic: "MFA Delete", q: "What S3 feature adds extra protection before deleting object versions?", a: "MFA Delete.", n: "It requires versioning and is configured by the root user with the CLI or API." },
+      { service: "S3", topic: "Object Lock", q: "What feature provides WORM-style retention for S3 objects?", a: "S3 Object Lock.", n: "Governance mode allows privileged bypass; compliance mode prevents deletion until retention expires." },
+      { service: "S3", topic: "Default encryption", q: "What are the common S3 server-side encryption choices?", a: "SSE-S3, SSE-KMS, DSSE-KMS, and SSE-C.", n: "For most exam scenarios, SSE-S3 is simplest and SSE-KMS is chosen when key control and audit are required." },
+      { service: "S3", topic: "SSE-KMS", q: "What extra permissions are needed to read objects encrypted with SSE-KMS?", a: "The caller needs S3 permissions and KMS permissions such as kms:Decrypt on the relevant KMS key.", n: "KMS key policy or grants can block access even when S3 allows it." },
+      { service: "S3", topic: "Lifecycle", q: "What does an S3 lifecycle rule do?", a: "It automatically transitions objects to cheaper storage classes, expires objects, or cleans up incomplete multipart uploads.", n: "Lifecycle is a core cost-optimization feature." },
+      { service: "S3", topic: "Intelligent-Tiering", q: "When should you choose S3 Intelligent-Tiering?", a: "Use it when access patterns are unknown or changing and objects are large enough and retained long enough to justify monitoring costs.", n: "It automatically moves objects between access tiers without retrieval charges." },
+      { service: "S3", topic: "Standard-IA", q: "When is S3 Standard-IA a good fit?", a: "For infrequently accessed data that still needs millisecond retrieval and multi-AZ resilience.", n: "It has retrieval charges and minimum storage-duration considerations." },
+      { service: "S3", topic: "One Zone-IA", q: "When should S3 One Zone-IA be used?", a: "For infrequently accessed, re-creatable data when lower cost matters and single-AZ resilience is acceptable.", n: "Do not choose it when losing an Availability Zone must not risk the data." },
+      { service: "S3", topic: "Glacier classes", q: "Which S3 classes fit archive workloads?", a: "Glacier Instant Retrieval for rarely accessed archive data needing milliseconds access; Glacier Flexible Retrieval and Deep Archive for lower-cost long-term archives with slower retrieval.", n: "Deep Archive is usually the lowest-cost long-term option." },
+      { service: "S3", topic: "Replication", q: "What must be enabled before using S3 replication?", a: "Versioning must be enabled on both the source and destination buckets.", n: "Replication can be same-Region or cross-Region and needs an IAM role." },
+      { service: "S3", topic: "Replication use cases", q: "When should you use S3 Cross-Region Replication?", a: "For compliance, regional data locality, lower-latency regional reads, or disaster recovery copies in another Region.", n: "Replication is asynchronous and is not a substitute for strongly consistent multi-Region writes." },
+      { service: "S3", topic: "Static website", q: "What is the S3 static website hosting access requirement?", a: "The website endpoint requires public read access to the hosted objects.", n: "For private origin access through CloudFront OAC, use the S3 REST endpoint instead of the website endpoint." },
+      { service: "S3", topic: "Pre-signed URL", q: "When should you use an S3 pre-signed URL?", a: "When a user or application needs temporary access to upload or download a specific object without receiving AWS credentials.", n: "The URL inherits the permissions of the principal that created it." },
+      { service: "S3", topic: "Access Points", q: "Why use S3 Access Points?", a: "They provide separate hostnames and policies for different applications, teams, or access patterns against shared buckets.", n: "Access Points simplify policy management for large shared datasets." },
+      { service: "S3", topic: "VPC endpoint", q: "How can private subnets access S3 without traversing the public internet?", a: "Use an S3 Gateway VPC endpoint or an Interface endpoint when PrivateLink-style access is required.", n: "Gateway endpoints are common for S3 access from VPC route tables." },
+      { service: "S3", topic: "Events", q: "How can S3 trigger processing when an object is uploaded?", a: "Configure S3 Event Notifications to targets such as Lambda, SQS, SNS, or EventBridge.", n: "Use idempotent consumers because event-driven systems can retry." },
+      { service: "S3", topic: "Multipart upload", q: "When should multipart upload be used?", a: "For large objects to improve throughput, resume failed parts, and upload parts in parallel.", n: "Clean up incomplete multipart uploads with a lifecycle rule." },
+      { service: "S3", topic: "Transfer Acceleration", q: "What S3 feature helps users upload objects faster from far away?", a: "S3 Transfer Acceleration.", n: "It uses AWS edge locations; test whether it improves performance before paying for it." },
+      { service: "S3", topic: "Requester Pays", q: "What does Requester Pays do for an S3 bucket?", a: "It makes the requester pay request and data-transfer costs instead of the bucket owner.", n: "Common for shared datasets where consumers should pay access costs." },
+      { service: "S3", topic: "Inventory", q: "What is S3 Inventory used for?", a: "Generating scheduled reports about objects and metadata such as encryption status, storage class, replication status, and versioning.", n: "Use it for audit and large-scale visibility, not real-time lookup." },
+      { service: "S3", topic: "Batch Operations", q: "How do you apply an action to millions or billions of existing S3 objects?", a: "Use S3 Batch Operations with an inventory report or manifest.", n: "Examples include copying objects, tagging objects, restoring archives, or invoking Lambda." },
+      { service: "S3", topic: "Select vs Athena", q: "What is the difference between S3 Select and Athena?", a: "S3 Select retrieves subsets from a single object. Athena queries datasets in S3 using SQL across many objects.", n: "For broad data-lake analytics, Athena is usually the better fit." },
+      { service: "S3", topic: "DataSync", q: "What should you use to migrate large on-premises file datasets into S3?", a: "AWS DataSync.", n: "It automates and accelerates transfer from NFS, SMB, HDFS, object storage, or other supported sources." },
+
+      { service: "CloudFront", topic: "Use case", q: "When is CloudFront the best fit?", a: "When geographically distributed users need low-latency delivery, origin offload, edge caching, or edge security.", n: "It can front S3, ALB, API Gateway, EC2, and custom HTTP origins." },
+      { service: "CloudFront", topic: "Private S3", q: "What is the recommended private S3 origin pattern for new CloudFront designs?", a: "Use Origin Access Control, block public S3 access, and allow the CloudFront service principal in the bucket policy with SourceArn restriction.", n: "OAC is preferred over the older OAI mechanism." },
+      { service: "CloudFront", topic: "S3 endpoints", q: "Can an S3 static website endpoint use OAC?", a: "No. S3 website endpoints are custom HTTP origins and cannot use OAC or OAI.", n: "Use the S3 REST endpoint for private bucket access through OAC." },
+      { service: "CloudFront", topic: "Cache key", q: "What should be included in a CloudFront cache key?", a: "Only the headers, cookies, and query strings that actually change the response.", n: "A smaller cache key usually improves cache hit ratio." },
+      { service: "CloudFront", topic: "Cache vs origin request", q: "What is the difference between cache policies and origin request policies?", a: "Cache policies define cache key and TTL behavior. Origin request policies define extra data forwarded to the origin on cache misses.", n: "Values in the cache key are automatically forwarded to the origin." },
+      { service: "CloudFront", topic: "Invalidations", q: "A static file changed but kept the same URL. How do you refresh it before TTL expiry?", a: "Create a CloudFront invalidation for the object.", n: "For routine deployments, versioned filenames are usually better." },
+      { service: "CloudFront", topic: "Signed URL", q: "When should you use a CloudFront signed URL?", a: "When a viewer needs temporary access to a single object or a small number of objects.", n: "Example: a paid download link." },
+      { service: "CloudFront", topic: "Signed cookie", q: "When should you use CloudFront signed cookies?", a: "When a viewer needs access to multiple restricted objects without changing URLs.", n: "Example: subscriber access to a video library." },
+      { service: "CloudFront", topic: "OAC vs signed access", q: "What is the difference between OAC and signed URLs/cookies?", a: "OAC protects the origin from direct public access. Signed URLs and cookies restrict viewer access through CloudFront.", n: "They solve different parts of the security model." },
+      { service: "CloudFront", topic: "TLS region", q: "Where must the ACM certificate be for a CloudFront custom domain?", a: "us-east-1.", n: "This applies to viewer-facing CloudFront TLS certificates." },
+      { service: "CloudFront", topic: "502 TLS", q: "CloudFront returns 502 after enabling HTTPS to a custom origin. What is a likely cause?", a: "The origin certificate does not match the origin domain name configured in CloudFront, is expired, or is not trusted.", n: "Fix the origin certificate or CloudFront origin domain name." },
+      { service: "CloudFront", topic: "WAF", q: "How do you protect a global web app from SQL injection, XSS, and rate abuse at the edge?", a: "Attach an AWS WAF web ACL to the CloudFront distribution.", n: "Use managed rules and rate-based rules where appropriate." },
+      { service: "CloudFront", topic: "Cost", q: "How can you reduce CloudFront cost for users mostly in North America and Europe?", a: "Use a lower price class, improve cache hit ratio, use long TTLs for static assets, and avoid unnecessary forwarded values.", n: "Price classes trade edge coverage for lower cost." },
+      { service: "CloudFront", topic: "Dynamic content", q: "Can CloudFront help dynamic apps even when caching is disabled?", a: "Yes. It can still help with TLS termination, connection reuse, edge networking, and request routing over AWS infrastructure.", n: "Be careful not to cache personalized content incorrectly." },
+      { service: "CloudFront", topic: "SSE-KMS origin", q: "What extra permission is needed when S3 origin objects use SSE-KMS?", a: "The KMS key policy must allow the CloudFront distribution to decrypt the objects.", n: "S3 bucket permission alone is not enough." },
+      { service: "CloudFront", topic: "Ordered behaviors", q: "How are CloudFront ordered cache behaviors evaluated?", a: "By path pattern order; more specific patterns should come before broader ones.", n: "The default behavior catches paths not matched by ordered behaviors." },
+
+      { service: "EventBridge", topic: "Core purpose", q: "What is EventBridge primarily used for?", a: "Serverless event routing, filtering, fan-out, SaaS integration, scheduled invocation, and event-driven automation.", n: "It decouples producers from consumers." },
+      { service: "EventBridge", topic: "Event bus", q: "What does an EventBridge event bus do?", a: "It receives events and routes matching events to targets through rules.", n: "Rules are associated with a specific event bus." },
+      { service: "EventBridge", topic: "Default bus", q: "What does the default event bus commonly receive?", a: "Events from many AWS services in the account.", n: "Custom applications often publish to custom event buses." },
+      { service: "EventBridge", topic: "Rules", q: "What does an EventBridge rule do?", a: "It matches events using an event pattern or schedule and sends matching events to targets.", n: "A single event can match multiple rules." },
+      { service: "EventBridge", topic: "Targets", q: "How many targets can one EventBridge rule have?", a: "Up to five targets.", n: "Targets run independently and in parallel." },
+      { service: "EventBridge", topic: "Scheduler", q: "What should you choose for modern one-time or recurring scheduled invocations?", a: "EventBridge Scheduler.", n: "It is preferred over legacy scheduled rules for new designs." },
+      { service: "EventBridge", topic: "Archive replay", q: "A team needs to reprocess events after a bug fix. What EventBridge feature fits?", a: "Archive and replay.", n: "Archived events replay to the source event bus." },
+      { service: "EventBridge", topic: "Pipes", q: "When should you use EventBridge Pipes?", a: "For one source to one target with optional filtering, enrichment, and transformation.", n: "Event buses are many-to-many; pipes are point-to-point." },
+      { service: "EventBridge", topic: "API destinations", q: "What EventBridge feature calls an external HTTPS API?", a: "API destinations with a connection and often an input transformer.", n: "This is for outbound HTTP calls from EventBridge." },
+      { service: "EventBridge", topic: "Schemas", q: "What are EventBridge schemas used for?", a: "Describing event structure and generating code bindings for consumers.", n: "Schemas describe shape; rules route events." },
+      { service: "EventBridge", topic: "SaaS", q: "A SaaS app should trigger AWS workflows without hosted webhook infrastructure. What should you use?", a: "EventBridge partner event source and partner event bus.", n: "Create rules on the partner event bus to route events to targets." },
+      { service: "EventBridge", topic: "EventBridge vs SNS", q: "When should you choose EventBridge over SNS?", a: "When you need content-based event routing, AWS/SaaS events, event buses, schemas, archive/replay, or cross-account event routing.", n: "SNS is better for simpler high-throughput pub/sub notifications." },
+      { service: "EventBridge", topic: "EventBridge vs SQS", q: "When should you choose SQS instead of EventBridge?", a: "When you need buffering, backpressure, polling consumers, or FIFO ordering.", n: "A common pattern is EventBridge rule to SQS, then workers poll SQS." },
+      { service: "EventBridge", topic: "EventBridge vs Step Functions", q: "When should EventBridge trigger Step Functions?", a: "When an event should start a multi-step orchestrated workflow.", n: "EventBridge routes the triggering event; Step Functions orchestrates the sequence." },
+      { service: "EventBridge", topic: "Reliability", q: "What should EventBridge consumers assume about event delivery?", a: "Events may be delivered more than once, so consumers should be idempotent.", n: "Do not assume strict ordering unless the architecture provides it elsewhere." },
+      { service: "EventBridge", topic: "Permissions", q: "EventBridge cannot invoke a target. What should you check?", a: "Target permissions, resource policies, EventBridge execution role, and KMS key policy if encryption is involved.", n: "Lambda, SQS, and KMS policies are common exam traps." },
+
+      { service: "AWS Backup", topic: "Core purpose", q: "When should you use AWS Backup?", a: "When you need centralized, policy-driven backup and restore across supported AWS services.", n: "It is not a live traffic failover service." },
+      { service: "AWS Backup", topic: "Backup plan", q: "What does an AWS Backup plan define?", a: "Backup schedule, windows, destination vault, retention, lifecycle, and copy actions.", n: "Different workload tiers can use different plans." },
+      { service: "AWS Backup", topic: "Resource assignment", q: "How should many new resources automatically receive backup protection?", a: "Assign resources to backup plans by tag.", n: "Example: resources tagged Backup=Daily or Environment=Production." },
+      { service: "AWS Backup", topic: "Backup vault", q: "What is a backup vault?", a: "A logical container for recovery points with access policies, encryption settings, and optional Vault Lock.", n: "Vaults help separate workload, environment, or compliance scopes." },
+      { service: "AWS Backup", topic: "Recovery point", q: "What is a recovery point?", a: "A backup stored in a backup vault that can be restored, copied, retained, or deleted according to policy.", n: "The first backup is typically full; later backups may be incremental where supported." },
+      { service: "AWS Backup", topic: "Cross-Region", q: "What protects backups against a primary Region outage?", a: "Cross-Region backup copy to a destination vault in another Region.", n: "This supports restore in another Region, not active multi-Region serving." },
+      { service: "AWS Backup", topic: "Cross-account", q: "What protects backups if the production account is compromised?", a: "Cross-account backup copy to a vault in a separate backup account with restrictive policies.", n: "Add Vault Lock for stronger immutability where appropriate." },
+      { service: "AWS Backup", topic: "Vault Lock", q: "Which AWS Backup feature provides WORM-style immutable protection?", a: "AWS Backup Vault Lock.", n: "It helps prevent early deletion and enforce retention." },
+      { service: "AWS Backup", topic: "Compliance mode", q: "Which Vault Lock mode prevents deletion by any user, including root, after the grace period?", a: "Compliance mode.", n: "Plan retention carefully because protected backups cannot be deleted early." },
+      { service: "AWS Backup", topic: "Governance mode", q: "When does Vault Lock governance mode fit?", a: "When authorized administrators should still be able to manage or remove the lock.", n: "Compliance mode is stricter after its grace period." },
+      { service: "AWS Backup", topic: "Lifecycle", q: "How do you reduce cost for backups retained for years when slower restore is acceptable?", a: "Use lifecycle policies to move supported backups to cold storage and expire them after required retention.", n: "Cold storage is not supported by every resource type." },
+      { service: "AWS Backup", topic: "Restore behavior", q: "Does AWS Backup usually overwrite the original resource during restore?", a: "No. Restore usually creates a new resource.", n: "You still need to update endpoints, DNS, secrets, or app configuration as needed." },
+      { service: "AWS Backup", topic: "Audit Manager", q: "What is AWS Backup Audit Manager used for?", a: "Evaluating backup compliance, controls, retention, protected resources, and reporting evidence.", n: "Backup existence alone does not prove restore readiness." },
+      { service: "AWS Backup", topic: "Replication distinction", q: "An application needs fast failover to another Region with minimal data loss. Is AWS Backup enough?", a: "No. Use service-native replication or a multi-Region architecture.", n: "AWS Backup is for recovery point restore, not continuous active replication." },
+      { service: "AWS Backup", topic: "KMS", q: "Why can backup restore fail even when a recovery point exists?", a: "The restore role or destination account may lack KMS key policy permission to decrypt the backup.", n: "Cross-account backup and restore often require KMS policy updates." },
+      { service: "AWS Backup", topic: "Organizations", q: "What centrally defines backup requirements across many AWS accounts?", a: "AWS Organizations backup policies integrated with AWS Backup.", n: "SCPs are permission guardrails; they do not create backups." }
+    ];
+
+    const services = ["All", ...Array.from(new Set(cards.map(card => card.service)))];
+    let activeService = "All";
+    let deck = [...cards];
+    let index = 0;
+    let flipped = false;
+    const marks = new Map();
+
+    const els = {
+      filters: document.getElementById("filters"),
+      queue: document.getElementById("queue"),
+      flashcard: document.getElementById("flashcard"),
+      question: document.getElementById("question"),
+      answer: document.getElementById("answer"),
+      note: document.getElementById("note"),
+      frontService: document.getElementById("frontService"),
+      backService: document.getElementById("backService"),
+      frontTopic: document.getElementById("frontTopic"),
+      backTopic: document.getElementById("backTopic"),
+      position: document.getElementById("position"),
+      knownCount: document.getElementById("knownCount"),
+      reviewCount: document.getElementById("reviewCount"),
+      prevBtn: document.getElementById("prevBtn"),
+      flipBtn: document.getElementById("flipBtn"),
+      knownBtn: document.getElementById("knownBtn"),
+      reviewBtn: document.getElementById("reviewBtn"),
+      shuffleBtn: document.getElementById("shuffleBtn"),
+      resetBtn: document.getElementById("resetBtn")
+    };
+
+    function cardId(card) {
+      return `${card.service}:${card.topic}:${card.q}`;
+    }
+
+    function filterDeck() {
+      deck = activeService === "All" ? [...cards] : cards.filter(card => card.service === activeService);
+      index = Math.min(index, deck.length - 1);
+      if (index < 0) index = 0;
+      flipped = false;
+      render();
+    }
+
+    function renderFilters() {
+      els.filters.innerHTML = "";
+      services.forEach(service => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = service;
+        button.className = service === activeService ? "active" : "";
+        button.addEventListener("click", () => {
+          activeService = service;
+          index = 0;
+          filterDeck();
+          renderFilters();
+        });
+        els.filters.appendChild(button);
+      });
+    }
+
+    function renderQueue() {
+      els.queue.innerHTML = "";
+      deck.forEach((card, i) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `queue-item${i === index ? " current" : ""}`;
+        button.textContent = `${i + 1}. ${card.service}: ${card.topic}`;
+        button.addEventListener("click", () => {
+          index = i;
+          flipped = false;
+          render();
+        });
+        els.queue.appendChild(button);
+      });
+    }
+
+    function renderStats() {
+      let known = 0;
+      let review = 0;
+      deck.forEach(card => {
+        const mark = marks.get(cardId(card));
+        if (mark === "known") known += 1;
+        if (mark === "review") review += 1;
+      });
+      els.position.textContent = `${index + 1}/${deck.length}`;
+      els.knownCount.textContent = String(known);
+      els.reviewCount.textContent = String(review);
+    }
+
+    function render() {
+      const card = deck[index];
+      els.flashcard.classList.toggle("flipped", flipped);
+      els.question.textContent = card.q;
+      els.answer.textContent = card.a;
+      els.note.textContent = card.n;
+      els.frontService.textContent = card.service;
+      els.backService.textContent = card.service;
+      els.frontTopic.textContent = card.topic;
+      els.backTopic.textContent = card.topic;
+      renderStats();
+      renderQueue();
+    }
+
+    function flip() {
+      flipped = !flipped;
+      render();
+    }
+
+    function move(delta) {
+      index = (index + delta + deck.length) % deck.length;
+      flipped = false;
+      render();
+    }
+
+    function mark(value) {
+      marks.set(cardId(deck[index]), value);
+      move(1);
+    }
+
+    function shuffle() {
+      for (let i = deck.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [deck[i], deck[j]] = [deck[j], deck[i]];
+      }
+      index = 0;
+      flipped = false;
+      render();
+    }
+
+    els.flashcard.addEventListener("click", flip);
+    els.flipBtn.addEventListener("click", flip);
+    els.prevBtn.addEventListener("click", () => move(-1));
+    els.knownBtn.addEventListener("click", () => mark("known"));
+    els.reviewBtn.addEventListener("click", () => mark("review"));
+    els.shuffleBtn.addEventListener("click", shuffle);
+    els.resetBtn.addEventListener("click", () => {
+      marks.clear();
+      flipped = false;
+      render();
+    });
+
+    document.addEventListener("keydown", event => {
+      if (event.target.tagName === "BUTTON") return;
+      if (event.code === "Space") {
+        event.preventDefault();
+        flip();
+      }
+      if (event.key === "ArrowRight") move(1);
+      if (event.key === "ArrowLeft") move(-1);
+      if (event.key.toLowerCase() === "k") mark("known");
+      if (event.key.toLowerCase() === "r") mark("review");
+    });
+
+    renderFilters();
+    filterDeck();
+  </script>
+</body>
+</html>
