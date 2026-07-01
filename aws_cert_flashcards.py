@@ -279,7 +279,127 @@ CARDS = [
     Card("vpc-q46", 14, "VPC", "S3 gateway VPC endpoint: what is it, when do you use it, and why?", "What: a gateway-type VPC endpoint specifically for private access to Amazon S3 via route-table entries. When: when instances in a private subnet must read from or write to S3 without a NAT gateway or internet gateway. Why: it keeps S3 traffic inside the AWS network for better security, removes exposure to the internet, and avoids NAT processing charges (the endpoint itself is free).", "Add an S3 gateway endpoint so a private subnet reaches S3 without internet routing."),
     Card("vpc-q47", 14, "VPC", "VPC Reachability Analyzer: what is it, when do you use it, and why?", "What: a network diagnostic tool that analyzes the configured path between two resources and reports whether traffic can reach the destination. When: when you are troubleshooting connectivity or want to validate a path before deploying. Why: it inspects security groups, NACLs, route tables, and gateways to pinpoint exactly where a path is blocked, without sending real packets.", "Run a reachability check between two instances to find a blocked hop."),
     Card("vpc-q48", 14, "VPC", "AWS PrivateLink and interface VPC endpoints: what are they, when do you use them, and why?", "What: an interface VPC endpoint creates an elastic network interface with a private IP in your subnet, and AWS PrivateLink uses it to privately connect to AWS services, partner services, or your own services. When: when you need private access to a service that is not supported by gateway endpoints, or to expose your own service to consumers privately. Why: traffic never leaves the AWS network and consumers reach the service by private IP, avoiding public internet exposure and overlapping-CIDR problems.", "Add an interface endpoint so a private subnet reaches an AWS service over PrivateLink."),
+    # --- VPC deep dive: public/private subnets ---
+    Card("vpc-q49", 14, "VPC", "How many IP addresses are usable in a VPC subnet?", "AWS reserves 5 IP addresses in every subnet (the first four and the last one). For example, a /24 has 256 addresses but only 251 are usable. This is a classic capacity-planning gotcha.", "Subtract 5 reserved IPs when sizing a subnet."),
+    Card("vpc-q50", 14, "VPC", "Can a VPC use more than one CIDR block?", "Yes. A VPC has a primary IPv4 CIDR and can have secondary CIDR blocks added later to expand its address space.", "Add a secondary CIDR when a VPC runs low on IPs."),
+    Card("vpc-q51", 14, "VPC", "What actually makes a subnet public versus private?", "Only its route table. A subnet is public when its route table has a 0.0.0.0/0 route to an internet gateway; it is private when that route points to a NAT (or is absent). There is no 'public' checkbox - NAT, IGW, and security groups only support the routing decision.", "Read a route table to classify a subnet."),
+    Card("vpc-q52", 14, "VPC", "How many internet gateways can a VPC have and where is it attached?", "One IGW per VPC, attached to the VPC itself (not to a subnet). It is horizontally scaled and redundant, and performs 1:1 NAT for instances that have a public IP.", "Attach a single IGW to the VPC."),
+    Card("vpc-q53", 14, "VPC", "What is the local route in a route table?", "Every route table automatically includes a local route (for example 10.0.0.0/16 -> local) that lets all resources inside the VPC communicate. It cannot be removed.", "Find the non-removable local route."),
+    Card("vpc-q54", 14, "VPC", "Where must a NAT gateway be placed, and why?", "In a public subnet, because it needs its own route to the internet gateway to forward outbound traffic from private subnets. Placing it in a private subnet is a common mistake.", "Put the NAT gateway in a public subnet."),
+    Card("vpc-q55", 14, "VPC", "How do you make outbound internet access from private subnets highly available?", "Deploy one NAT gateway per Availability Zone and point each AZ's private route table at its local NAT gateway. A single NAT gateway is an AZ-level single point of failure - if that AZ fails, all private subnets lose internet access.", "Add a NAT gateway per AZ for HA."),
+    Card("vpc-q56", 14, "VPC", "NAT gateway versus NAT instance?", "A NAT gateway is AWS-managed, auto-scaling, and highly available within an AZ - the exam's best-practice answer. A NAT instance is a self-managed EC2 acting as NAT: legacy, cheaper for low traffic, but you manage patching, scaling, and failover yourself.", "Pick NAT gateway as the best-practice option."),
+    Card("vpc-q57", 14, "VPC", "What does a NAT gateway require for a stable outbound address?", "An Elastic IP - a static public IPv4 address associated with the NAT gateway.", "Attach an EIP when creating a NAT gateway."),
+    Card("vpc-q58", 14, "VPC", "How do you make a database subnet the most secure, beyond security groups?", "Place the database in an isolated subnet whose route table has no 0.0.0.0/0 route to an IGW or NAT at all. The database never needs outbound internet, so removing the route provides defense in depth even if a security group is misconfigured.", "Give a DB subnet no internet route."),
+    Card("vpc-q59", 14, "VPC", "What are the key differences between security groups and network ACLs?", "Security group: instance/ENI level, stateful (return traffic auto-allowed), allow rules only, all rules evaluated, default denies inbound and allows outbound, applies only to instances that reference it. Network ACL: subnet level, stateless (must allow both directions), allow and deny rules, rules processed in number order with first match winning, applies to every instance in the subnet.", "Fill in an SG-versus-NACL comparison from memory."),
+    Card("vpc-q60", 14, "VPC", "Why must network ACLs allow the ephemeral port range?", "Because NACLs are stateless, return traffic is not automatically allowed. You must explicitly open the ephemeral port range (1024-65535) for responses. Security groups do not need this because they are stateful.", "Add an outbound/inbound ephemeral-port rule to a NACL."),
+    Card("vpc-q61", 14, "VPC", "Gateway endpoint versus interface (PrivateLink) endpoint?", "Gateway endpoint: free, only for S3 and DynamoDB, added as a route-table target. Interface endpoint (PrivateLink): an ENI with a private IP in your subnet, works for most other AWS services, and incurs hourly plus data-processing cost.", "Choose gateway for S3/DynamoDB, interface for others."),
+    Card("vpc-q62", 14, "VPC", "How does a private-subnet EC2 instance reach S3 without a NAT gateway?", "Use an S3 Gateway VPC endpoint. It is the exam-correct answer because it is cheaper, more secure, and keeps traffic off the internet entirely with no internet exposure.", "Replace a NAT path to S3 with a gateway endpoint."),
+    Card("vpc-q63", 14, "VPC", "How do you get SSH/RDP access to private instances without exposing them?", "Use a bastion host in a public subnet, or better, AWS Systems Manager Session Manager, which needs no open SSH port and no bastion host at all.", "Prefer Session Manager over an open SSH bastion."),
+    Card("vpc-q64", 14, "VPC", "What is special about the default VPC?", "Every AWS account gets a default VPC per Region, with a default subnet in every AZ that is public by default. Custom VPCs, by contrast, have no subnets or internet routing until you create them.", "Contrast default (all public) with custom VPCs."),
+    Card("vpc-q65", 14, "VPC", "Can a subnet span multiple Availability Zones?", "No. A subnet lives in exactly one Availability Zone and cannot span AZs. High availability comes from spreading subnets across multiple AZs.", "Map each subnet to a single AZ."),
+    # --- Service Definitions (SAA-C03 service catalog: definition + use case) ---
+    # Compute
+    Card("svc-q1", 0, "Service Definitions", "EC2 (Elastic Compute Cloud): definition and use case?", "Virtual servers in the cloud where you choose instance type (CPU/RAM/network profile), OS, and storage. Use for general-purpose workloads, hosting apps, and when you need full OS control. Key concepts: On-Demand, Reserved Instances, Spot, Savings Plans, and instance families (T=burstable, M=general, C=compute-optimized, R=memory-optimized, I=storage-optimized).", "Match an instance family letter to a workload."),
+    Card("svc-q2", 0, "Service Definitions", "Auto Scaling Groups (ASG): definition and use case?", "Automatically adds or removes EC2 instances based on demand or a schedule. Use for maintaining availability and controlling cost by matching capacity to load.", "Set desired/min/max capacity for a scaling group."),
+    Card("svc-q3", 0, "Service Definitions", "Elastic Load Balancing (ELB): definition, types, and use case?", "Distributes incoming traffic across multiple targets (EC2, containers, IPs). Types: Application Load Balancer (Layer 7, HTTP/HTTPS routing), Network Load Balancer (Layer 4, ultra-high performance/static IP), Gateway Load Balancer (third-party appliances). Use for high availability, fault tolerance, and distributing traffic.", "Pick ALB vs NLB vs GWLB for a scenario."),
+    Card("svc-q4", 0, "Service Definitions", "AWS Lambda: definition, limits, and use case?", "Serverless, event-driven compute that runs code without provisioning servers, billed per invocation/duration. Use for short-lived tasks, event processing (S3 triggers, API Gateway backends), microservices, and glue logic. Limits to know: 15-minute max execution; memory and CPU scale together.", "Recall the 15-minute Lambda execution limit."),
+    Card("svc-q5", 0, "Service Definitions", "Elastic Beanstalk: definition and use case?", "A PaaS where you upload code and AWS handles provisioning, load balancing, scaling, and monitoring. Use for quickly deploying web apps without managing infrastructure directly.", "Choose Beanstalk to deploy an app fast without ops."),
+    Card("svc-q6", 0, "Service Definitions", "ECS, EKS, and Fargate: definitions and use case?", "ECS is AWS's native container orchestration service; EKS is managed Kubernetes; Fargate is the serverless compute engine for containers (no EC2 management) that works with both ECS and EKS. Use for containerized applications at scale.", "Choose Fargate when you don't want to manage nodes."),
+    # Storage
+    Card("svc-q7", 0, "Service Definitions", "Amazon S3 (Simple Storage Service): definition, features, and use case?", "Object storage with virtually unlimited capacity and 11 nines durability. Storage classes: Standard, Intelligent-Tiering, Standard-IA, One Zone-IA, Glacier Instant Retrieval, Glacier Flexible Retrieval, Glacier Deep Archive. Use for static website hosting, backups, data lakes, and any unstructured data. Key features: versioning, lifecycle policies, cross-region replication, encryption (SSE-S3, SSE-KMS, SSE-C).", "Match a storage class to an access pattern."),
+    Card("svc-q8", 0, "Service Definitions", "EBS (Elastic Block Store): definition, types, and use case?", "Persistent block storage volumes attached to EC2 instances, like a virtual hard drive. Types: gp3/gp2 (general SSD), io1/io2 (provisioned IOPS for high-performance DBs), st1 (throughput HDD), sc1 (cold HDD). Use for boot volumes and databases needing low-latency block storage. Tied to a single AZ.", "Pick an EBS type for a high-IOPS database."),
+    Card("svc-q9", 0, "Service Definitions", "EFS (Elastic File System): definition and use case?", "Managed, scalable NFS file storage shareable across multiple EC2 instances and AZs. Use for shared file storage across many instances, such as content management or shared home directories.", "Choose EFS when multiple instances share files."),
+    Card("svc-q10", 0, "Service Definitions", "S3 Glacier: definition and use case?", "Low-cost archival storage. Use for long-term backup/archive with infrequent, delayed access needs.", "Choose Glacier for cheap long-term archive."),
+    Card("svc-q11", 0, "Service Definitions", "Storage Gateway: definition and use case?", "A hybrid storage service connecting on-premises environments to AWS storage. Use for extending on-prem storage to the cloud and backup/DR for hybrid environments.", "Bridge on-prem storage to AWS with Storage Gateway."),
+    Card("svc-q12", 0, "Service Definitions", "AWS Backup: definition and use case?", "A centralized backup management service across AWS services. Use for automating and consolidating backup policies (EBS, RDS, DynamoDB, EFS, and more).", "Centralize backup policies across services."),
+    # Databases
+    Card("svc-q13", 0, "Service Definitions", "Amazon RDS (Relational Database Service): definition, features, and use case?", "Managed relational databases (MySQL, PostgreSQL, MariaDB, Oracle, SQL Server, Aurora-compatible). Use for traditional relational/transactional workloads; AWS handles patching, backups, and failover. Key features: Multi-AZ (failover/HA) and Read Replicas (scaling reads).", "Distinguish Multi-AZ (HA) from read replicas (scale)."),
+    Card("svc-q14", 0, "Service Definitions", "Amazon Aurora: definition and use case?", "An AWS-built, MySQL/PostgreSQL-compatible relational database with higher performance and scalability than standard RDS. Use for high-performance relational workloads needing better throughput, with Aurora Serverless for variable workloads.", "Choose Aurora for high-throughput relational needs."),
+    Card("svc-q15", 0, "Service Definitions", "Amazon DynamoDB: definition and use case?", "A fully managed, serverless NoSQL key-value/document database with single-digit millisecond latency at any scale. Use for high-scale, low-latency applications (gaming, IoT, mobile backends). Supports on-demand or provisioned capacity, and DAX for caching.", "Map a low-latency key-value pattern to DynamoDB."),
+    Card("svc-q16", 0, "Service Definitions", "Amazon ElastiCache: definition and use case?", "Managed in-memory caching (Redis or Memcached). Use for speeding up application response times and reducing database load (session storage, leaderboards, caching layer).", "Add ElastiCache to cut database read load."),
+    Card("svc-q17", 0, "Service Definitions", "Amazon Redshift: definition and use case?", "A managed data warehouse for large-scale analytics (petabyte scale, columnar storage). Use for business intelligence and complex analytical queries across large structured datasets.", "Choose Redshift for analytics, not OLTP."),
+    # Networking & Content Delivery
+    Card("svc-q18", 0, "Service Definitions", "Amazon VPC (Virtual Private Cloud): definition and key components?", "Your isolated, logically defined network within AWS. Key components: subnets (public/private), route tables, internet gateway (public access), NAT gateway (outbound-only internet for private subnets), security groups (stateful, instance-level firewall), and NACLs (stateless, subnet-level firewall).", "Label public vs private subnet routing."),
+    Card("svc-q19", 0, "Service Definitions", "Amazon Route 53: definition, routing policies, and use case?", "A managed DNS service that also supports domain registration and health checks. Routing policies: Simple, Weighted, Latency-based, Failover, Geolocation, Geoproximity, Multi-value. Use for DNS resolution, traffic routing strategies, and domain health monitoring.", "Match a routing policy to a requirement."),
+    Card("svc-q20", 0, "Service Definitions", "Amazon CloudFront: definition and use case?", "A content delivery network (CDN) that caches content at edge locations globally. Use for reducing latency for static/dynamic content, DDoS mitigation (with Shield), and it integrates with S3/ALB as origin.", "Put CloudFront in front of an S3 or ALB origin."),
+    Card("svc-q21", 0, "Service Definitions", "AWS Direct Connect: definition and use case?", "A dedicated private network connection from on-premises to AWS that bypasses the public internet. Use for consistent, low-latency, high-bandwidth hybrid connectivity (versus VPN, which uses the public internet).", "Choose Direct Connect over VPN for steady bandwidth."),
+    Card("svc-q22", 0, "Service Definitions", "AWS VPN (Site-to-Site / Client VPN): definition and use case?", "An encrypted connection over the public internet between on-prem and AWS, or between a client and AWS. Use for quick, lower-cost hybrid connectivity versus Direct Connect.", "Choose VPN for a fast, low-cost hybrid link."),
+    Card("svc-q23", 0, "Service Definitions", "AWS Transit Gateway: definition and use case?", "A central hub connecting multiple VPCs and on-prem networks. Use for simplifying complex multi-VPC/multi-account network architectures (replaces messy VPC peering webs).", "Replace a peering mesh with a Transit Gateway."),
+    Card("svc-q24", 0, "Service Definitions", "Amazon API Gateway: definition and use case?", "A fully managed service for creating, publishing, and securing APIs at scale. Use as the front door for applications to access backend services, often paired with Lambda.", "Place API Gateway in front of a Lambda backend."),
+    # Security, Identity & Compliance
+    Card("svc-q25", 0, "Service Definitions", "AWS IAM (Identity and Access Management): definition and key concept?", "Controls authentication and authorization to AWS resources (users, groups, roles, policies). Key concept: roles are assumed for temporary credentials and are preferred over long-term access keys, especially for EC2/Lambda accessing other services.", "Use a role instead of static keys for a service."),
+    Card("svc-q26", 0, "Service Definitions", "AWS Organizations: definition and use case?", "Centralized management of multiple AWS accounts, with Service Control Policies (SCPs) to set permission guardrails. Use for multi-account governance and consolidated billing.", "Apply an SCP guardrail across accounts."),
+    Card("svc-q27", 0, "Service Definitions", "AWS KMS (Key Management Service): definition and use case?", "Managed creation and control of encryption keys. Use for encrypting data at rest across AWS services (S3, EBS, RDS, and more).", "Encrypt an S3 bucket or EBS volume with a KMS key."),
+    Card("svc-q28", 0, "Service Definitions", "AWS Secrets Manager: definition and use case?", "Securely stores, rotates, and manages secrets (DB credentials, API keys). Use for automatic secret rotation and avoiding hardcoded credentials.", "Rotate a database credential automatically."),
+    Card("svc-q29", 0, "Service Definitions", "AWS Shield and AWS WAF: definitions and use case?", "Shield is DDoS protection (Standard = free/automatic, Advanced = paid with extra features). WAF is a Web Application Firewall that filters malicious HTTP traffic such as SQL injection and XSS at the application layer.", "Add WAF for app-layer filtering and Shield for DDoS."),
+    Card("svc-q30", 0, "Service Definitions", "Amazon Cognito: definition and use case?", "Manages user sign-up/sign-in and access control for web and mobile apps. Use for adding authentication (user pools) and federated/temporary AWS credentials (identity pools) to applications.", "Distinguish user pools from identity pools."),
+    # Management, Monitoring & Governance
+    Card("svc-q31", 0, "Service Definitions", "Amazon CloudWatch: definition and use case?", "Monitoring and observability: metrics, logs, alarms, and dashboards. Use for triggering Auto Scaling actions, alerting on thresholds, and centralizing logs.", "Create an alarm that triggers scaling."),
+    Card("svc-q32", 0, "Service Definitions", "AWS CloudTrail: definition and use case?", "Logs API calls and account activity across AWS services. Use for auditing, security analysis, compliance, and tracking who did what.", "Use CloudTrail to find who changed a resource."),
+    Card("svc-q33", 0, "Service Definitions", "AWS Config: definition and use case?", "Tracks resource configurations and changes over time and evaluates them against compliance rules. Use for compliance auditing and configuration drift detection.", "Detect configuration drift with a Config rule."),
+    Card("svc-q34", 0, "Service Definitions", "AWS Trusted Advisor: definition and use case?", "Provides real-time recommendations across cost optimization, performance, security, and fault tolerance.", "Review Trusted Advisor for cost and security wins."),
+    Card("svc-q35", 0, "Service Definitions", "AWS Systems Manager: definition and use case?", "A suite of operational management tools (Patch Manager, Session Manager, Parameter Store, Run Command). Use for centralized operational tasks, secure shell access without SSH keys or bastion hosts (Session Manager), and storing config/secrets (Parameter Store).", "Use Session Manager to reach an instance without SSH."),
+    # Application Integration
+    Card("svc-q36", 0, "Service Definitions", "Amazon SQS (Simple Queue Service): definition, types, and use case?", "A managed message queuing service that decouples application components. Types: Standard (at-least-once, best-effort ordering) and FIFO (exactly-once, ordered). Use for decoupling producers/consumers, buffering requests, and smoothing traffic spikes.", "Choose Standard vs FIFO for an ordering need."),
+    Card("svc-q37", 0, "Service Definitions", "Amazon SNS (Simple Notification Service): definition and use case?", "Pub/sub messaging that pushes messages to multiple subscribers (email, SMS, SQS, Lambda). Use for fan-out patterns, alerting, and broadcasting events to multiple consumers.", "Fan out one event to several subscribers."),
+    Card("svc-q38", 0, "Service Definitions", "AWS Step Functions: definition and use case?", "Orchestrates multi-step workflows across AWS services using state machines. Use for coordinating Lambda functions and other services into complex workflows with a visual flow.", "Model a multi-step workflow as a state machine."),
+    Card("svc-q39", 0, "Service Definitions", "Amazon EventBridge: definition and use case?", "A serverless event bus for building event-driven architectures, including from SaaS sources. Use for routing events between AWS services and applications based on rules.", "Route a SaaS or service event with an EventBridge rule."),
+    # Migration & Transfer
+    Card("svc-q40", 0, "Service Definitions", "AWS Snow Family (Snowball, Snowcone, Snowmobile): definition and use case?", "Physical devices for transferring large amounts of data into or out of AWS when network transfer is impractical. Use for petabyte-scale data migration and edge computing in disconnected environments.", "Choose Snow devices when the network is too slow."),
+    Card("svc-q41", 0, "Service Definitions", "AWS DMS (Database Migration Service): definition and use case?", "Migrates databases to AWS with minimal downtime, supporting homogeneous and heterogeneous migrations. Use for moving on-prem databases to RDS/Aurora, often paired with the Schema Conversion Tool (SCT) for engine changes.", "Pair DMS with SCT for a cross-engine migration."),
 ]
+
+
+# --- Runtime card editing: user overrides layered on top of the built-in CARDS ---
+CARDS_FILE = Path(__file__).with_name("aws_flashcard_cards.json")
+
+
+def _load_card_overrides() -> dict:
+    """Load user-created/edited cards keyed by card id."""
+    if not CARDS_FILE.exists():
+        return {}
+    try:
+        with CARDS_FILE.open("r", encoding="utf-8") as file:
+            data = json.load(file)
+        return data if isinstance(data, dict) else {}
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+
+def _apply_card_overrides(base: list[Card], overrides: dict) -> list[Card]:
+    """Return the card list with overrides applied: matching ids replaced, new ids appended."""
+    by_id = {card.id: card for card in base}
+    for cid, data in overrides.items():
+        try:
+            by_id[cid] = Card(
+                cid,
+                int(data.get("day", 0)),
+                data.get("focus", ""),
+                data.get("question", ""),
+                data.get("answer", ""),
+                data.get("practical", ""),
+            )
+        except (TypeError, ValueError):
+            continue
+    return list(by_id.values())
+
+
+def save_card_overrides() -> None:
+    with CARDS_FILE.open("w", encoding="utf-8") as file:
+        json.dump(CARD_OVERRIDES, file, indent=2, sort_keys=True)
+
+
+def upsert_card(data: dict) -> Card:
+    """Create or update a card at runtime, persist it, and refresh the in-memory CARDS list."""
+    global CARDS
+    CARD_OVERRIDES[data["id"]] = data
+    save_card_overrides()
+    CARDS = _apply_card_overrides(CARDS, {data["id"]: data})
+    return next(card for card in CARDS if card.id == data["id"])
+
+
+CARD_OVERRIDES = _load_card_overrides()
+CARDS = _apply_card_overrides(CARDS, CARD_OVERRIDES)
 
 
 def wrapped(text: str, indent: int = 0) -> str:
@@ -468,10 +588,12 @@ def interactive_menu(progress: dict) -> None:
         print("7. Well-Architected Framework flashcards")
         print("8. High availability & fault tolerance flashcards")
         print("9. Directory Services flashcards")
-        print("10. Review missed cards")
-        print("11. Show topics")
-        print("12. Show progress")
-        print("13. Reset progress")
+        print("10. Service Definitions flashcards")
+        print("11. Review missed cards")
+        print("12. Show topics")
+        print("13. Show progress")
+        print("14. Reset progress")
+        print("15. Launch visual flashcard mode (GUI)")
         print("0. Exit")
         choice = input("Choose an option: ").strip()
 
@@ -504,17 +626,22 @@ def interactive_menu(progress: dict) -> None:
                 count = read_count()
                 run_quiz(select_cards(topic="Directory"), shuffle=True, limit=count, progress=progress)
             elif choice == "10":
-                run_quiz(select_cards(missed_only=True, progress=progress), shuffle=True, limit=None, progress=progress)
+                count = read_count()
+                run_quiz(select_cards(topic="Service Definitions"), shuffle=True, limit=count, progress=progress)
             elif choice == "11":
-                print_topics()
+                run_quiz(select_cards(missed_only=True, progress=progress), shuffle=True, limit=None, progress=progress)
             elif choice == "12":
-                print_stats(progress)
+                print_topics()
             elif choice == "13":
+                print_stats(progress)
+            elif choice == "14":
                 confirm = input("Reset all saved progress? Type RESET to confirm: ").strip()
                 if confirm == "RESET":
                     progress.clear()
                     save_progress(progress)
                     print("Progress reset.")
+            elif choice == "15":
+                launch_gui(progress)
             elif choice == "0":
                 return
             else:
@@ -533,6 +660,349 @@ def read_count() -> int | None:
     return count
 
 
+def launch_gui(progress: dict) -> bool:
+    """Launch a visual flashcard UI. Returns True if it ran, False if Tkinter is unavailable."""
+    try:
+        import tkinter as tk
+        from tkinter import ttk, messagebox
+    except Exception:
+        print("Tkinter is not available in this Python install, so the flashcard GUI cannot start.")
+        print("Run with --cli to use the terminal menu instead.")
+        return False
+
+    ALL_TOPICS = "All topics"
+    session_grades: dict[str, bool] = {}
+    state = {"deck": [], "index": 0, "revealed": False}
+
+    def grade_card(card: Card, correct: bool) -> None:
+        """Record a grade once per card per session, adjusting if the user changes their answer."""
+        prev = session_grades.get(card.id)
+        if prev == correct:
+            return
+        entry = progress.setdefault(
+            card.id,
+            {"day": card.day, "focus": card.focus, "seen": 0, "correct": 0, "incorrect": 0, "last_seen": None},
+        )
+        if prev is None:
+            entry["seen"] += 1
+        else:
+            entry["correct" if prev else "incorrect"] -= 1
+        entry["correct" if correct else "incorrect"] += 1
+        entry["last_seen"] = datetime.now().isoformat(timespec="seconds")
+        session_grades[card.id] = correct
+        save_progress(progress)
+
+    root = tk.Tk()
+    root.title("AWS SAA-C03 Flashcards")
+    root.geometry("780x580")
+    root.minsize(640, 480)
+
+    # ---- top controls ----
+    top = ttk.Frame(root, padding=(12, 10))
+    top.pack(fill="x")
+    # Topic choices mirror the terminal menu items (label -> select_cards search term).
+    topic_choices = [
+        (ALL_TOPICS, None),
+        ("S3 flashcards", "S3"),
+        ("IAM flashcards", "IAM"),
+        ("EC2 flashcards", "EC2"),
+        ("VPC flashcards", "VPC"),
+        ("Well-Architected Framework flashcards", "Well-Architected"),
+        ("High availability & fault tolerance flashcards", "High availability"),
+        ("Directory Services flashcards", "Directory"),
+        ("Service Definitions flashcards", "Service Definitions"),
+    ]
+    topic_search = dict(topic_choices)
+    ttk.Label(top, text="Topic:").pack(side="left")
+    topic_var = tk.StringVar(value=ALL_TOPICS)
+    topic_box = ttk.Combobox(top, textvariable=topic_var, values=[label for label, _ in topic_choices],
+                             state="readonly", width=40)
+    topic_box.pack(side="left", padx=(4, 12))
+    missed_var = tk.BooleanVar(value=False)
+    ttk.Checkbutton(top, text="Review missed only", variable=missed_var,
+                    command=lambda: rebuild_deck()).pack(side="left")
+    ttk.Button(top, text="Shuffle", command=lambda: shuffle_deck()).pack(side="right")
+    ttk.Button(top, text="Edit card", command=lambda: open_editor(current_card())).pack(side="right", padx=(6, 0))
+    ttk.Button(top, text="New card", command=lambda: open_editor(None)).pack(side="right", padx=(6, 0))
+
+    # ---- flashcard ----
+    card_outer = tk.Frame(root, bg="#d9dee7", padx=16, pady=12)
+    card_outer.pack(fill="both", expand=True, padx=16, pady=(0, 8))
+    card = tk.Frame(card_outer, bg="white", highlightbackground="#b9c2d0", highlightthickness=1)
+    card.pack(fill="both", expand=True)
+
+    header = tk.Frame(card, bg="#2f6fed")
+    header.pack(fill="x")
+    focus_label = tk.Label(header, text="", bg="#2f6fed", fg="white", font=("Segoe UI", 11, "bold"),
+                           anchor="w", padx=12, pady=6)
+    focus_label.pack(side="left")
+    counter_label = tk.Label(header, text="", bg="#2f6fed", fg="white", font=("Segoe UI", 10), anchor="e", padx=12)
+    counter_label.pack(side="right")
+
+    body = tk.Frame(card, bg="white")
+    body.pack(fill="both", expand=True, padx=18, pady=16)
+    q_caption = tk.Label(body, text="QUESTION", bg="white", fg="#8a94a6", font=("Segoe UI", 9, "bold"), anchor="w")
+    q_caption.pack(fill="x")
+    question_label = tk.Label(body, text="", bg="white", fg="#1b2330", font=("Segoe UI", 15),
+                              wraplength=660, justify="left", anchor="w")
+    question_label.pack(fill="x", pady=(2, 12))
+    answer_sep = ttk.Separator(body, orient="horizontal")
+    a_caption = tk.Label(body, text="ANSWER", bg="white", fg="#8a94a6", font=("Segoe UI", 9, "bold"), anchor="w")
+    answer_label = tk.Label(body, text="", bg="white", fg="#1b2330", font=("Segoe UI", 13),
+                            wraplength=660, justify="left", anchor="w")
+
+    # ---- grading + navigation ----
+    correct_var = tk.BooleanVar(value=False)
+
+    # Row above the buttons: status text on the left, grading checkbox on the right.
+    controls = ttk.Frame(root, padding=(16, 4))
+    controls.pack(fill="x")
+    status_label = ttk.Label(controls, text="", foreground="#5a6472")
+    status_label.pack(side="left", padx=12)
+    correct_check = ttk.Checkbutton(controls, text="I got this correct", variable=correct_var,
+                                    command=lambda: on_toggle())
+    correct_check.pack(side="right")
+
+    nav = ttk.Frame(root, padding=(16, 8))
+    nav.pack(fill="x")
+    # All three navigation buttons grouped on the lower right (left-to-right: Previous, Show Answer, Next).
+    next_btn = ttk.Button(nav, text="Next ▶", command=lambda: go(1))
+    next_btn.pack(side="right")
+    reveal_btn = ttk.Button(nav, text="Show Answer", command=lambda: toggle_reveal())
+    reveal_btn.pack(side="right", padx=8)
+    prev_btn = ttk.Button(nav, text="◀ Previous", command=lambda: go(-1))
+    prev_btn.pack(side="right")
+
+    def current_card():
+        return state["deck"][state["index"]] if state["deck"] else None
+
+    def set_reveal(shown: bool) -> None:
+        state["revealed"] = shown
+        if shown:
+            answer_sep.pack(fill="x", pady=(4, 8))
+            a_caption.pack(fill="x")
+            answer_label.pack(fill="x", pady=(2, 0))
+            reveal_btn.config(text="Hide Answer")
+            correct_check.config(state="normal")
+        else:
+            answer_label.pack_forget()
+            a_caption.pack_forget()
+            answer_sep.pack_forget()
+            reveal_btn.config(text="Show Answer")
+            correct_check.config(state="disabled")
+
+    def update_status() -> None:
+        c = current_card()
+        if c is None:
+            return
+        if c.id in session_grades:
+            status_label.config(text="Marked correct" if session_grades[c.id] else "Marked incorrect")
+        elif state["revealed"]:
+            status_label.config(text="Tick the box if you got it right, then click Next.")
+        else:
+            status_label.config(text="")
+
+    def show_card() -> None:
+        c = current_card()
+        if c is None:
+            focus_label.config(text="No cards")
+            counter_label.config(text="")
+            question_label.config(text="No cards match this selection. Pick another topic or turn off 'Review missed only'.")
+            answer_label.config(text="")
+            set_reveal(False)
+            for btn in (prev_btn, next_btn, reveal_btn):
+                btn.config(state="disabled")
+            correct_check.config(state="disabled")
+            status_label.config(text="")
+            return
+        for btn in (prev_btn, next_btn, reveal_btn):
+            btn.config(state="normal")
+        focus_label.config(text=c.focus)
+        counter_label.config(text=f"{c.id}  •  Card {state['index'] + 1} / {len(state['deck'])}")
+        question_label.config(text=c.question)
+        answer_label.config(text=c.answer)
+        correct_var.set(session_grades.get(c.id, False))
+        set_reveal(c.id in session_grades)  # auto-reveal cards already graded this session
+        update_status()
+
+    def commit_current() -> None:
+        c = current_card()
+        if c is not None and state["revealed"]:
+            grade_card(c, correct_var.get())
+
+    def toggle_reveal() -> None:
+        if current_card() is None:
+            return
+        set_reveal(not state["revealed"])
+        update_status()
+
+    def on_toggle() -> None:
+        commit_current()
+        update_status()
+
+    def end_of_deck() -> None:
+        deck = state["deck"]
+        total = len(deck)
+        correct = sum(1 for c in deck if session_grades.get(c.id) is True)
+        missed = [c for c in deck if session_grades.get(c.id) is False]
+        if missed:
+            retry = messagebox.askyesno(
+                "Deck complete",
+                f"You've gone through all {total} card(s).\n\n"
+                f"Correct: {correct}\n"
+                f"Incorrect: {len(missed)}\n\n"
+                f"Retry the {len(missed)} failed card(s)?\n"
+                f"(Yes = retry failed cards, No = quit)",
+            )
+            if retry:
+                random.shuffle(missed)
+                state["deck"] = missed
+                state["index"] = 0
+                show_card()
+            else:
+                on_close()
+        else:
+            quit_now = messagebox.askyesno(
+                "Deck complete",
+                f"You've gone through all {total} card(s) with no misses. Nice work!\n\n"
+                f"Quit now?\n(No keeps the window open.)",
+            )
+            if quit_now:
+                on_close()
+
+    def go(delta: int) -> None:
+        commit_current()
+        if not state["deck"]:
+            return
+        if delta > 0 and state["index"] == len(state["deck"]) - 1:
+            end_of_deck()  # reached the last card and clicked Next
+            return
+        state["index"] = max(0, min(len(state["deck"]) - 1, state["index"] + delta))
+        show_card()
+
+    def rebuild_deck() -> None:
+        topic = topic_search.get(topic_var.get())
+        deck = select_cards(topic=topic, missed_only=missed_var.get(), progress=progress)
+        random.shuffle(deck)  # present questions in random order
+        state["deck"] = deck
+        state["index"] = 0
+        show_card()
+
+    def shuffle_deck() -> None:
+        commit_current()
+        random.shuffle(state["deck"])
+        state["index"] = 0
+        show_card()
+
+    def suggest_id() -> str:
+        n = 1
+        existing = {c.id for c in CARDS}
+        while f"user-q{n}" in existing:
+            n += 1
+        return f"user-q{n}"
+
+    def open_editor(existing: "Card | None") -> None:
+        win = tk.Toplevel(root)
+        win.title("Edit card" if existing else "New card")
+        win.transient(root)
+        win.grab_set()
+        frm = ttk.Frame(win, padding=12)
+        frm.pack(fill="both", expand=True)
+        frm.columnconfigure(1, weight=1)
+
+        cur = current_card()
+
+        def add_entry(label, value, row, width=52):
+            ttk.Label(frm, text=label).grid(row=row, column=0, sticky="nw", pady=4, padx=(0, 8))
+            entry = ttk.Entry(frm, width=width)
+            entry.insert(0, value)
+            entry.grid(row=row, column=1, sticky="we", pady=4)
+            return entry
+
+        def add_text(label, value, row, height):
+            ttk.Label(frm, text=label).grid(row=row, column=0, sticky="nw", pady=4, padx=(0, 8))
+            text = tk.Text(frm, width=52, height=height, wrap="word", font=("Segoe UI", 10))
+            text.insert("1.0", value)
+            text.grid(row=row, column=1, sticky="we", pady=4)
+            return text
+
+        id_entry = add_entry("ID", existing.id if existing else suggest_id(), 0, width=24)
+        if existing:
+            id_entry.config(state="readonly")
+        day_entry = add_entry("Day", str(existing.day) if existing else "0", 1, width=10)
+        focus_entry = add_entry("Focus (topic)", existing.focus if existing else (cur.focus if cur else ""), 2)
+        question_text = add_text("Question", existing.question if existing else "", 3, height=4)
+        answer_text = add_text("Answer", existing.answer if existing else "", 4, height=7)
+        practical_entry = add_entry("Practical", existing.practical if existing else "", 5)
+
+        msg = ttk.Label(frm, text="", foreground="#b00020")
+        msg.grid(row=6, column=0, columnspan=2, sticky="w", pady=(4, 0))
+
+        def save() -> None:
+            cid = id_entry.get().strip()
+            if not cid:
+                msg.config(text="ID is required.")
+                return
+            if existing is None and any(c.id == cid for c in CARDS):
+                msg.config(text="That ID already exists - use Edit instead, or pick another ID.")
+                return
+            try:
+                day = int(day_entry.get().strip() or "0")
+            except ValueError:
+                msg.config(text="Day must be a whole number.")
+                return
+            question = question_text.get("1.0", "end").strip()
+            answer = answer_text.get("1.0", "end").strip()
+            if not question or not answer:
+                msg.config(text="Question and answer are both required.")
+                return
+            card = upsert_card({
+                "id": cid,
+                "day": day,
+                "focus": focus_entry.get().strip(),
+                "question": question,
+                "answer": answer,
+                "practical": practical_entry.get().strip(),
+            })
+            # Reflect the change in the current deck and jump to the card.
+            if any(c.id == cid for c in state["deck"]):
+                state["deck"] = [card if c.id == cid else c for c in state["deck"]]
+            else:
+                state["deck"].append(card)
+            for i, c in enumerate(state["deck"]):
+                if c.id == cid:
+                    state["index"] = i
+                    break
+            show_card()
+            win.destroy()
+
+        buttons = ttk.Frame(frm)
+        buttons.grid(row=7, column=0, columnspan=2, sticky="e", pady=(10, 0))
+        ttk.Button(buttons, text="Cancel", command=win.destroy).pack(side="right", padx=(6, 0))
+        ttk.Button(buttons, text="Save", command=save).pack(side="right")
+
+    def on_resize(event) -> None:
+        width = max(360, card.winfo_width() - 60)
+        question_label.config(wraplength=width)
+        answer_label.config(wraplength=width)
+
+    def on_close() -> None:
+        commit_current()
+        root.destroy()
+
+    topic_box.bind("<<ComboboxSelected>>", lambda e: rebuild_deck())
+    for widget in (card, body, question_label, q_caption):
+        widget.bind("<Button-1>", lambda e: toggle_reveal())
+    card.bind("<Configure>", on_resize)
+    root.bind("<Left>", lambda e: go(-1))
+    root.bind("<Right>", lambda e: go(1))
+    root.protocol("WM_DELETE_WINDOW", on_close)
+
+    rebuild_deck()
+    root.mainloop()
+    return True
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="AWS SAA-C03 terminal flashcard trainer")
     parser.add_argument("--topic", help="Topic text to search, for example IAM, S3, networking")
@@ -541,6 +1011,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--list-topics", action="store_true", help="Print all topics and exit")
     parser.add_argument("--stats", action="store_true", help="Print saved progress and exit")
     parser.add_argument("--reset", action="store_true", help="Reset saved progress and exit")
+    parser.add_argument("--gui", action="store_true", help="Launch the visual flashcard UI")
+    parser.add_argument("--cli", action="store_true", help="Force the terminal menu instead of the GUI")
     return parser
 
 
@@ -561,12 +1033,21 @@ def main() -> None:
         print("Progress reset.")
         return
 
+    if args.gui:
+        if not launch_gui(progress):
+            interactive_menu(progress)
+        return
+
     has_filters = bool(args.topic or args.missed or args.count)
     if has_filters:
         cards = select_cards(topic=args.topic, missed_only=args.missed, progress=progress)
         run_quiz(cards, shuffle=True, limit=args.count, progress=progress)
-    else:
+    elif args.cli:
         interactive_menu(progress)
+    else:
+        # Default to the visual flashcard UI; fall back to the terminal menu if Tkinter is missing.
+        if not launch_gui(progress):
+            interactive_menu(progress)
 
 
 if __name__ == "__main__":
