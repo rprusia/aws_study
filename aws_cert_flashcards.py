@@ -362,6 +362,17 @@ CARDS = [
     Card("srm-q12", 1, "Shared Responsibility Model", "What are 'shared controls' in the model?", "Controls both parties handle from their own side, such as patch management, configuration management, and awareness/training.", "Give an example of a shared control."),
     Card("srm-q13", 1, "Shared Responsibility Model", "Who is responsible for backing up customer data?", "The customer, though AWS provides backup features and services to make it easier.", "Assign data backup to the customer."),
     Card("srm-q14", 1, "Shared Responsibility Model", "Who ensures the durability and availability of the underlying storage infrastructure?", "AWS provides the durable, redundant infrastructure; the customer is responsible for how they use it, such as access policies, versioning, and replication settings.", "Split infra durability (AWS) from usage config (customer)."),
+    # --- EC2 scenario decision cards ---
+    Card("ec2-scn-q1", 6, "EC2 scenarios", "Application must survive an AZ failure.", "Use an Auto Scaling group across multiple AZs behind an ALB.", "Draw a multi-AZ ASG behind an ALB."),
+    Card("ec2-scn-q2", 6, "EC2 scenarios", "Need lowest latency between EC2 nodes.", "Use a cluster placement group.", "Pick cluster placement for tightly coupled HPC nodes."),
+    Card("ec2-scn-q3", 6, "EC2 scenarios", "Need EC2 instances isolated across hardware.", "Use a spread placement group.", "Pick spread placement to isolate critical instances."),
+    Card("ec2-scn-q4", 6, "EC2 scenarios", "Need cheaper compute for fault-tolerant batch jobs.", "Use Spot Instances.", "Match interruptible batch work to Spot."),
+    Card("ec2-scn-q5", 6, "EC2 scenarios", "Need predictable discount for steady usage.", "Use Savings Plans or Reserved Instances.", "Match steady baseline usage to a commitment discount."),
+    Card("ec2-scn-q6", 6, "EC2 scenarios", "Need capacity guaranteed in one AZ.", "Use a Capacity Reservation.", "Reserve capacity in a specific AZ."),
+    Card("ec2-scn-q7", 6, "EC2 scenarios", "Need bootstrapping on first launch.", "Use user data.", "Add a user-data script to bootstrap an instance."),
+    Card("ec2-scn-q8", 6, "EC2 scenarios", "Need secure AWS credentials on EC2.", "Attach an IAM role to the instance.", "Attach an instance profile instead of storing keys."),
+    Card("ec2-scn-q9", 6, "EC2 scenarios", "Need to protect metadata credentials from SSRF risk.", "Require IMDSv2.", "Enforce IMDSv2 on the instance metadata options."),
+    Card("ec2-scn-q10", 6, "EC2 scenarios", "Need to replace unhealthy servers automatically.", "Use EC2 Auto Scaling with health checks.", "Let an ASG replace instances that fail health checks."),
 ]
 
 
