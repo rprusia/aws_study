@@ -373,6 +373,41 @@ CARDS = [
     Card("ec2-scn-q8", 6, "EC2 scenarios", "Need secure AWS credentials on EC2.", "Attach an IAM role to the instance.", "Attach an instance profile instead of storing keys."),
     Card("ec2-scn-q9", 6, "EC2 scenarios", "Need to protect metadata credentials from SSRF risk.", "Require IMDSv2.", "Enforce IMDSv2 on the instance metadata options."),
     Card("ec2-scn-q10", 6, "EC2 scenarios", "Need to replace unhealthy servers automatically.", "Use EC2 Auto Scaling with health checks.", "Let an ASG replace instances that fail health checks."),
+    # --- Amazon DocumentDB ---
+    Card("docdb-q1", 11, "DocumentDB", "What is Amazon DocumentDB?", "A fully managed, MongoDB-compatible document (NoSQL) database service that stores, queries, and indexes JSON data. AWS handles provisioning, patching, backups, and scaling.", "Choose DocumentDB for a managed MongoDB-compatible workload."),
+    Card("docdb-q2", 11, "DocumentDB", "When should you choose DocumentDB over DynamoDB?", "Choose DocumentDB when you need MongoDB API compatibility and rich document queries or are migrating an existing MongoDB workload. Choose DynamoDB for serverless key-value scale with single-digit millisecond latency.", "Map a MongoDB migration to DocumentDB."),
+    Card("docdb-q3", 11, "DocumentDB", "How does DocumentDB provide high availability?", "It separates compute from storage: the cluster volume replicates data six ways across three Availability Zones, and you can add up to 15 read replicas that can be promoted on failover.", "Design a Multi-AZ DocumentDB cluster with read replicas."),
+    Card("docdb-q4", 11, "DocumentDB", "How does DocumentDB scale reads and storage?", "Add read replicas to scale read throughput, and the cluster storage grows automatically in 10 GB increments up to 64 TB without manual provisioning.", "Add replicas for reads and let storage auto-grow."),
+    Card("docdb-q5", 11, "DocumentDB", "How is a DocumentDB cluster kept secure and private?", "It runs inside your VPC (no public access by default), supports encryption at rest with KMS and in transit with TLS, and uses security groups plus IAM for access control.", "Place DocumentDB in private subnets with KMS encryption."),
+    # --- Amazon Neptune ---
+    Card("neptune-q1", 11, "Neptune", "What is Amazon Neptune?", "A fully managed graph database service optimized for storing and querying highly connected data through relationships between data points.", "Choose Neptune for a workload centered on relationships."),
+    Card("neptune-q2", 11, "Neptune", "What are typical use cases for Neptune?", "Social networks, recommendation engines, fraud detection, knowledge graphs, and network/IT operations graphs, where the connections between items matter as much as the items themselves.", "Match a recommendation or fraud-detection scenario to Neptune."),
+    Card("neptune-q3", 11, "Neptune", "Which graph models and query languages does Neptune support?", "Property Graph queried with Apache TinkerPop Gremlin or openCypher, and RDF graphs queried with SPARQL.", "Pick Gremlin/openCypher for property graphs, SPARQL for RDF."),
+    Card("neptune-q4", 11, "Neptune", "How does Neptune provide high availability and durability?", "Its cluster storage replicates six copies of data across three Availability Zones and auto-grows, and you can add up to 15 read replicas that can be promoted on failover.", "Design a Multi-AZ Neptune cluster with read replicas."),
+    Card("neptune-q5", 11, "Neptune", "When should you choose Neptune over a relational database?", "Choose Neptune when queries traverse many-to-many relationships (multiple joins/hops), which graph databases handle far more efficiently than relational joins.", "Replace deep multi-join queries with a graph traversal."),
+    # --- AWS Global Accelerator ---
+    Card("ga-q1", 17, "Global Accelerator", "What is AWS Global Accelerator?", "A networking service that improves availability and performance for global users by routing traffic over the AWS global backbone network to the nearest healthy endpoint instead of the public internet.", "Choose Global Accelerator to speed up global traffic."),
+    Card("ga-q2", 17, "Global Accelerator", "What do the two static anycast IP addresses provide?", "Global Accelerator gives you two fixed anycast IPs that act as a single stable entry point for your application, so client-facing IPs never change even as backend endpoints move or fail over.", "Use the static IPs as a fixed front door for the app."),
+    Card("ga-q3", 17, "Global Accelerator", "How does Global Accelerator differ from CloudFront?", "CloudFront is a CDN that caches HTTP/HTTPS content at edge locations. Global Accelerator does not cache; it optimizes network routing for any TCP/UDP traffic and provides static entry IPs.", "Pick CloudFront for cached content, Global Accelerator for TCP/UDP routing."),
+    Card("ga-q4", 17, "Global Accelerator", "How does Global Accelerator handle endpoint failure?", "It continuously health-checks endpoints and instantly reroutes traffic to the next nearest healthy endpoint in another Region or AZ, improving availability without DNS changes.", "Rely on health checks for fast cross-Region failover."),
+    Card("ga-q5", 17, "Global Accelerator", "What endpoint types can Global Accelerator route to?", "Application Load Balancers, Network Load Balancers, EC2 instances, and Elastic IP addresses, across one or more AWS Regions.", "Point an accelerator at ALBs or NLBs in multiple Regions."),
+    # --- Key Management (AWS KMS) ---
+    Card("kms-q1", 23, "Key Management", "What is AWS KMS?", "AWS Key Management Service is a managed service for creating and controlling encryption keys (KMS keys). It integrates with most AWS services and logs all key usage to CloudTrail for auditing.", "Use KMS to create and audit encryption keys."),
+    Card("kms-q2", 23, "Key Management", "What are the three ownership types of KMS keys?", "AWS owned keys (owned/managed by AWS, shared across accounts, not visible to you), AWS managed keys (created by a service in your account, prefixed aws/, key policy managed by AWS), and customer managed keys (you create and fully control policy, rotation, and lifecycle).", "Classify a key as AWS owned, AWS managed, or customer managed."),
+    Card("kms-q3", 23, "Key Management", "When should you use a customer managed key instead of an AWS managed key?", "Use a customer managed key when you need control over the key policy, enabling/disabling, rotation schedule, deletion, and cross-account grants. AWS managed keys are simpler but you cannot manage their policy or rotation.", "Pick a customer managed key when you need policy and rotation control."),
+    Card("kms-q4", 23, "Key Management", "What is the difference between symmetric and asymmetric KMS keys?", "Symmetric keys use a single 256-bit key for both encrypt and decrypt and never leave KMS unencrypted. Asymmetric keys are a public/private key pair used for encryption or digital signing, where the public key can be shared outside AWS.", "Choose symmetric for most encryption, asymmetric for signing or external parties."),
+    Card("kms-q5", 23, "Key Management", "What is envelope encryption?", "Encrypting data with a data key, then encrypting that data key with a KMS key. AWS services use envelope encryption so large data is encrypted locally with the data key while only the small data key round-trips to KMS.", "Explain why data keys avoid sending bulk data to KMS."),
+    Card("kms-q6", 23, "Key Management", "What does the GenerateDataKey operation return?", "It returns a plaintext data key (used to encrypt data locally, then discarded) and an encrypted copy of that data key (stored with the ciphertext and later sent to KMS to decrypt).", "Encrypt locally with the plaintext key and store the encrypted key."),
+    Card("kms-q7", 23, "Key Management", "How does automatic key rotation work for customer managed keys?", "When enabled, KMS rotates the underlying key material once per year (or a configurable period) while keeping the same key ID and ARN, so applications and ciphertext references do not change.", "Enable annual rotation without breaking key references."),
+    Card("kms-q8", 23, "Key Management", "What controls access to a KMS key?", "The key policy (resource-based policy on the key) is the primary control and is always required; it can be combined with IAM policies and grants for temporary, fine-grained delegation.", "Grant access via the key policy plus IAM and grants."),
+    Card("kms-q9", 23, "Key Management", "What happens when you schedule a KMS key for deletion?", "KMS enforces a mandatory waiting period (7 to 30 days) during which the key is disabled but recoverable; after the period the key and its material are permanently deleted and data it protected becomes unrecoverable.", "Plan for the 7-30 day deletion window before removing a key."),
+    Card("kms-q10", 23, "Key Management", "When should you use CloudHSM instead of KMS?", "Use AWS CloudHSM when you need a dedicated, single-tenant FIPS 140-2 Level 3 hardware security module with full control of key material, often for strict compliance. KMS is multi-tenant and simpler for most workloads.", "Choose CloudHSM for dedicated HSM and compliance control."),
+    # --- AWS Control Tower ---
+    Card("ct-q1", 23, "Control Tower", "What is AWS Control Tower?", "A service that sets up and governs a secure, compliant multi-account AWS environment (a landing zone) based on best practices, automating account provisioning and applying governance on top of AWS Organizations.", "Use Control Tower to stand up a governed multi-account landing zone."),
+    Card("ct-q2", 23, "Control Tower", "What is a landing zone in Control Tower?", "A pre-configured, well-architected multi-account baseline: it creates a management account, core organizational units, log archive and audit accounts, centralized logging, and identity/access defaults.", "Recall that Control Tower builds the landing zone automatically."),
+    Card("ct-q3", 23, "Control Tower", "What are guardrails (controls) in Control Tower?", "Pre-packaged governance rules applied across accounts. Preventive guardrails use SCPs to block non-compliant actions; detective guardrails use AWS Config to flag violations. They can be mandatory, strongly recommended, or elective.", "Distinguish preventive (SCP) from detective (Config) guardrails."),
+    Card("ct-q4", 23, "Control Tower", "How does Control Tower relate to AWS Organizations?", "Control Tower is built on top of Organizations. Organizations provides the account structure, OUs, and SCPs, while Control Tower orchestrates, automates, and adds governance and monitoring on top.", "Explain that Control Tower automates governance over Organizations."),
+    Card("ct-q5", 23, "Control Tower", "What is Account Factory in Control Tower?", "A feature that standardizes and automates provisioning of new AWS accounts using pre-approved configurations and guardrails, so new accounts are compliant from creation.", "Use Account Factory to vend pre-configured accounts."),
 ]
 
 
@@ -616,11 +651,16 @@ def interactive_menu(progress: dict) -> None:
         print("9. Directory Services")
         print("10. Service Definitions")
         print("11. Shared Responsibility Model")
-        print("12. Review missed cards")
-        print("13. Show topics")
-        print("14. Show progress")
-        print("15. Reset progress")
-        print("16. Launch visual flashcard mode (GUI)")
+        print("12. DocumentDB")
+        print("13. Neptune")
+        print("14. Global Accelerator")
+        print("15. Key Management (KMS)")
+        print("16. Control Tower")
+        print("17. Review missed cards")
+        print("18. Show topics")
+        print("19. Show progress")
+        print("20. Reset progress")
+        print("21. Launch visual flashcard mode (GUI)")
         print("0. Exit")
         choice = input("Choose an option: ").strip()
 
@@ -659,18 +699,33 @@ def interactive_menu(progress: dict) -> None:
                 count = read_count()
                 run_quiz(select_cards(topic="Shared Responsibility"), shuffle=True, limit=count, progress=progress)
             elif choice == "12":
-                run_quiz(select_cards(missed_only=True, progress=progress), shuffle=True, limit=None, progress=progress)
+                count = read_count()
+                run_quiz(select_cards(topic="DocumentDB"), shuffle=True, limit=count, progress=progress)
             elif choice == "13":
-                print_topics()
+                count = read_count()
+                run_quiz(select_cards(topic="Neptune"), shuffle=True, limit=count, progress=progress)
             elif choice == "14":
-                print_stats(progress)
+                count = read_count()
+                run_quiz(select_cards(topic="Global Accelerator"), shuffle=True, limit=count, progress=progress)
             elif choice == "15":
+                count = read_count()
+                run_quiz(select_cards(topic="Key Management"), shuffle=True, limit=count, progress=progress)
+            elif choice == "16":
+                count = read_count()
+                run_quiz(select_cards(topic="Control Tower"), shuffle=True, limit=count, progress=progress)
+            elif choice == "17":
+                run_quiz(select_cards(missed_only=True, progress=progress), shuffle=True, limit=None, progress=progress)
+            elif choice == "18":
+                print_topics()
+            elif choice == "19":
+                print_stats(progress)
+            elif choice == "20":
                 confirm = input("Reset all saved progress? Type RESET to confirm: ").strip()
                 if confirm == "RESET":
                     progress.clear()
                     save_progress(progress)
                     print("Progress reset.")
-            elif choice == "16":
+            elif choice == "21":
                 launch_gui(progress)
             elif choice == "0":
                 return
@@ -742,6 +797,11 @@ def launch_gui(progress: dict) -> bool:
         ("Directory Services", "Directory"),
         ("Service Definitions", "Service Definitions"),
         ("Shared Responsibility Model", "Shared Responsibility"),
+        ("DocumentDB", "DocumentDB"),
+        ("Neptune", "Neptune"),
+        ("Global Accelerator", "Global Accelerator"),
+        ("Key Management (KMS)", "Key Management"),
+        ("Control Tower", "Control Tower"),
     ]
     topic_search = dict(topic_choices)
     ttk.Label(top, text="Topic:").pack(side="left")
