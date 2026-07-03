@@ -805,8 +805,8 @@ def launch_gui(progress: dict) -> bool:
     top = ttk.Frame(root, padding=(12, 10))
     top.pack(fill="x")
     # Topic choices mirror the terminal menu items (label -> select_cards search term).
-    topic_choices = [
-        (ALL_TOPICS, None),
+    # Topic labels are sorted alphabetically; "All topics" stays pinned at the top.
+    topic_choices = [(ALL_TOPICS, None)] + sorted([
         ("S3", "S3"),
         ("IAM", "IAM"),
         ("EC2", "EC2"),
@@ -822,7 +822,7 @@ def launch_gui(progress: dict) -> bool:
         ("Key Management (KMS)", "Key Management"),
         ("Control Tower", "Control Tower"),
         ("Storage", "Storage"),
-    ]
+    ], key=lambda choice: choice[0].lower())
     topic_search = dict(topic_choices)
     ttk.Label(top, text="Topic:").pack(side="left")
     topic_var = tk.StringVar(value=ALL_TOPICS)
@@ -871,24 +871,24 @@ def launch_gui(progress: dict) -> bool:
                             wraplength=660, justify="left", anchor="w")
 
     # ---- grading + navigation ----
-    correct_var = tk.BooleanVar(value=False)
-
-    # Row above the buttons: status text on the left, grading checkbox on the right.
+    # Row above the buttons: status text on the left, pass/fail tally on the right.
     controls = ttk.Frame(root, padding=(16, 4))
     controls.pack(fill="x")
     status_label = ttk.Label(controls, text="", foreground="#5a6472")
     status_label.pack(side="left", padx=12)
-    correct_check = ttk.Checkbutton(controls, text="I got this correct", variable=correct_var,
-                                    command=lambda: on_toggle())
-    correct_check.pack(side="right")
+    score_label = ttk.Label(controls, text="", foreground="#5a6472", font=("Segoe UI", 10, "bold"), anchor="e")
+    score_label.pack(side="right", padx=12)
 
     nav = ttk.Frame(root, padding=(16, 8))
     nav.pack(fill="x")
-    # All three navigation buttons grouped on the lower right (left-to-right: Previous, Show Answer, Next).
-    next_btn = ttk.Button(nav, text="Next ▶", command=lambda: go(1))
-    next_btn.pack(side="right")
+    # Navigation buttons grouped on the lower right (left-to-right: Previous, Show Answer, Wrong, Correct).
+    # Both Wrong and Correct advance to the next card; Wrong also records the card as incorrect.
+    correct_btn = ttk.Button(nav, text="Correct ✔", command=lambda: grade_and_next(True))
+    correct_btn.pack(side="right")
+    wrong_btn = ttk.Button(nav, text="Wrong ✘", command=lambda: grade_and_next(False))
+    wrong_btn.pack(side="right", padx=8)
     reveal_btn = ttk.Button(nav, text="Show Answer", command=lambda: toggle_reveal())
-    reveal_btn.pack(side="right", padx=8)
+    reveal_btn.pack(side="right", padx=(0, 8))
     prev_btn = ttk.Button(nav, text="◀ Previous", command=lambda: go(-1))
     prev_btn.pack(side="right")
 
@@ -902,13 +902,17 @@ def launch_gui(progress: dict) -> bool:
             a_caption.pack(fill="x")
             answer_label.pack(fill="x", pady=(2, 0))
             reveal_btn.config(text="Hide Answer")
-            correct_check.config(state="normal")
         else:
             answer_label.pack_forget()
             a_caption.pack_forget()
             answer_sep.pack_forget()
             reveal_btn.config(text="Show Answer")
-            correct_check.config(state="disabled")
+
+    def update_title() -> None:
+        passed = sum(1 for v in session_grades.values() if v)
+        failed = sum(1 for v in session_grades.values() if not v)
+        root.title(f"AWS SAA-C03 Flashcards  —  Correct: {passed}  |  Wrong: {failed}")
+        score_label.config(text=f"Correct: {passed}  |  Wrong: {failed}")
 
     def update_status() -> None:
         c = current_card()
@@ -916,10 +920,8 @@ def launch_gui(progress: dict) -> bool:
             return
         if c.id in session_grades:
             status_label.config(text="Marked correct" if session_grades[c.id] else "Marked incorrect")
-        elif state["revealed"]:
-            status_label.config(text="Tick the box if you got it right, then click Next.")
         else:
-            status_label.config(text="")
+            status_label.config(text="Click Correct or Wrong to grade and move on.")
 
     def show_card() -> None:
         c = current_card()
@@ -929,34 +931,31 @@ def launch_gui(progress: dict) -> bool:
             question_label.config(text="No cards match this selection. Pick another topic or turn off 'Review missed only'.")
             answer_label.config(text="")
             set_reveal(False)
-            for btn in (prev_btn, next_btn, reveal_btn):
+            for btn in (prev_btn, reveal_btn, wrong_btn, correct_btn):
                 btn.config(state="disabled")
-            correct_check.config(state="disabled")
             status_label.config(text="")
             return
-        for btn in (prev_btn, next_btn, reveal_btn):
+        for btn in (prev_btn, reveal_btn, wrong_btn, correct_btn):
             btn.config(state="normal")
         focus_label.config(text=c.focus)
         counter_label.config(text=f"{c.id}  •  Card {state['index'] + 1} / {len(state['deck'])}")
         question_label.config(text=c.question)
         answer_label.config(text=c.answer)
-        correct_var.set(session_grades.get(c.id, False))
         set_reveal(False)  # always start each card with the answer hidden
         update_status()
 
-    def commit_current() -> None:
+    def grade_and_next(correct: bool) -> None:
         c = current_card()
-        if c is not None and state["revealed"]:
-            grade_card(c, correct_var.get())
+        if c is None:
+            return
+        grade_card(c, correct)  # Wrong records incorrect, Correct records correct
+        update_title()  # refresh the passed/failed tally in the window title
+        go(1)  # both buttons advance to the next question
 
     def toggle_reveal() -> None:
         if current_card() is None:
             return
         set_reveal(not state["revealed"])
-        update_status()
-
-    def on_toggle() -> None:
-        commit_current()
         update_status()
 
     def end_of_deck() -> None:
@@ -975,6 +974,8 @@ def launch_gui(progress: dict) -> bool:
                 f"(Yes = retake those cards, No = quit)",
             )
             if review:
+                session_grades.clear()  # reset the pass/fail counters for the retake round
+                update_title()
                 random.shuffle(missed)
                 state["deck"] = missed
                 state["index"] = 0
@@ -991,7 +992,6 @@ def launch_gui(progress: dict) -> bool:
                 on_close()
 
     def go(delta: int) -> None:
-        commit_current()
         if not state["deck"]:
             return
         if delta > 0 and state["index"] == len(state["deck"]) - 1:
@@ -1018,7 +1018,6 @@ def launch_gui(progress: dict) -> bool:
 
     def shuffle_deck() -> None:
         # Draw a fresh random subset for the current topic and card count.
-        commit_current()
         rebuild_deck()
 
     def suggest_id() -> str:
@@ -1114,7 +1113,6 @@ def launch_gui(progress: dict) -> bool:
         answer_label.config(wraplength=width)
 
     def on_close() -> None:
-        commit_current()
         root.destroy()
 
     topic_box.bind("<<ComboboxSelected>>", lambda e: rebuild_deck())
@@ -1125,6 +1123,7 @@ def launch_gui(progress: dict) -> bool:
     root.bind("<Right>", lambda e: go(1))
     root.protocol("WM_DELETE_WINDOW", on_close)
 
+    update_title()  # show the initial 0/0 tally
     rebuild_deck()
     root.mainloop()
     return True
