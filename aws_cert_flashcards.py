@@ -160,8 +160,8 @@ CARDS = [
     Card("d20-q1", 20, "Containers", "What is Amazon ECS?", "Amazon ECS is AWS-native container orchestration for running and scaling containers without needing Kubernetes.", "Choose ECS for an AWS-native container service."),
     Card("d20-q2", 20, "Containers", "What is Amazon EKS?", "Amazon EKS is managed Kubernetes on AWS. Choose it when you need Kubernetes APIs, ecosystem compatibility, or portability.", "Choose EKS for a Kubernetes requirement."),
     Card("d20-q3", 20, "Containers", "What is AWS Fargate?", "Fargate is serverless compute for containers. It runs ECS or EKS tasks without you managing EC2 worker nodes.", "Pick Fargate for a small operations team."),
-    Card("d21-q1", 21, "Storage services", "When should you use Amazon EFS?", "Use EFS for shared elastic Linux file storage over NFS across multiple EC2 instances or containers.", "Mount EFS from two Linux instances."),
-    Card("d21-q2", 21, "Storage services", "When should you use Amazon FSx for Windows File Server?", "Use FSx for Windows File Server when applications need managed Windows file shares, SMB protocol, and Active Directory integration.", "Choose FSx for a Windows file-share scenario."),
+    Card("d21-q1", 21, "Storage services", "When should you use Amazon EFS?", "Use EFS for shared, elastic, POSIX-compliant Linux file storage over NFS that multiple EC2 instances or containers can mount at once. It is Linux-only; for Windows SMB shares use FSx for Windows File Server instead.", "Mount EFS from two Linux instances."),
+    Card("d21-q2", 21, "Storage services", "When should you use Amazon FSx, and what are its two flavors?", "FSx is managed file storage in two flavors: FSx for Windows File Server (SMB shares with Active Directory integration for Windows apps) and FSx for Lustre (high-performance parallel file system for HPC, ML, and big-data workloads).", "Choose FSx for Windows for SMB, FSx for Lustre for HPC."),
     Card("d21-q3", 21, "Storage services", "What is AWS DataSync used for?", "DataSync automates and accelerates data movement between on-premises storage, edge locations, and AWS storage services.", "Plan a migration from on-premises NFS to AWS."),
     Card("d22-q1", 22, "Monitoring", "What does CloudWatch provide?", "CloudWatch provides metrics, logs, dashboards, alarms, and events for monitoring AWS resources and applications.", "Create an alarm for high CPU."),
     Card("d22-q2", 22, "Monitoring", "What does CloudTrail record?", "CloudTrail records AWS API activity, including who made a request, when it happened, and which resources were affected.", "Use CloudTrail to find who changed a security group."),
@@ -408,6 +408,21 @@ CARDS = [
     Card("ct-q3", 23, "Control Tower", "What are guardrails (controls) in Control Tower?", "Pre-packaged governance rules applied across accounts. Preventive guardrails use SCPs to block non-compliant actions; detective guardrails use AWS Config to flag violations. They can be mandatory, strongly recommended, or elective.", "Distinguish preventive (SCP) from detective (Config) guardrails."),
     Card("ct-q4", 23, "Control Tower", "How does Control Tower relate to AWS Organizations?", "Control Tower is built on top of Organizations. Organizations provides the account structure, OUs, and SCPs, while Control Tower orchestrates, automates, and adds governance and monitoring on top.", "Explain that Control Tower automates governance over Organizations."),
     Card("ct-q5", 23, "Control Tower", "What is Account Factory in Control Tower?", "A feature that standardizes and automates provisioning of new AWS accounts using pre-approved configurations and guardrails, so new accounts are compliant from creation.", "Use Account Factory to vend pre-configured accounts."),
+    # --- Storage decision scenarios ---
+    Card("stg-scn-q1", 21, "Storage scenarios", "Need storage for a single EC2 instance, persistent, high performance.", "Use Amazon EBS.", "Attach an EBS volume to one instance for durable block storage."),
+    Card("stg-scn-q2", 21, "Storage scenarios", "Need to store unstructured data at massive scale, accessed via API.", "Use Amazon S3.", "Store objects in S3 and access them over the API/HTTPS."),
+    Card("stg-scn-q3", 21, "Storage scenarios", "Need shared file storage across multiple Linux EC2 instances.", "Use Amazon EFS.", "Mount one EFS file system from several Linux instances."),
+    Card("stg-scn-q4", 21, "Storage scenarios", "Need Windows file shares (SMB) or HPC workloads.", "Use Amazon FSx (FSx for Windows File Server, or FSx for Lustre for HPC).", "Pick FSx for Windows for SMB, FSx for Lustre for HPC."),
+    Card("stg-scn-q5", 21, "Storage scenarios", "Need cheapest long-term archival storage.", "Use S3 Glacier / Glacier Deep Archive.", "Move rarely accessed archives to Glacier Deep Archive."),
+    Card("stg-scn-q6", 21, "Storage scenarios", "Need temporary, non-persistent storage tied to instance lifecycle.", "Use EC2 Instance Store.", "Use instance store for scratch data that can be lost."),
+    Card("stg-scn-q7", 21, "Storage scenarios", "Need to bridge on-premises storage with AWS.", "Use AWS Storage Gateway.", "Use Storage Gateway to extend on-prem storage into AWS."),
+    # --- Storage service details (from the storage types table) ---
+    Card("stg-q1", 21, "Storage services", "What are the three main categories of AWS storage?", "Block storage (EBS, Instance Store) for volumes attached to instances, object storage (S3, S3 Glacier) accessed via API, and file storage (EFS, FSx) mounted as a shared file system. Storage Gateway is hybrid storage.", "Classify a service as block, object, or file storage."),
+    Card("stg-q2", 21, "Storage services", "What are the four Amazon EBS volume types?", "gp3 (general-purpose SSD, the default), io2 (provisioned IOPS SSD for high-IOPS, mission-critical workloads), st1 (throughput-optimized HDD for big data/streaming), and sc1 (cold HDD for infrequently accessed data).", "Match a workload to gp3, io2, st1, or sc1."),
+    Card("stg-q3", 21, "Storage services", "Why can an EBS volume normally attach to only one EC2 instance?", "EBS is single-attach block storage scoped to one Availability Zone, so a volume attaches to one instance in its AZ at a time (Multi-Attach on io1/io2 is a special exception). For shared file access across instances, use EFS instead.", "Choose EFS when many instances must share the same data."),
+    Card("stg-q4", 21, "Storage services", "What are the main Amazon S3 storage classes?", "Standard, Intelligent-Tiering, Standard-IA, One Zone-IA, Glacier Instant Retrieval, Glacier Flexible Retrieval, and Glacier Deep Archive, ranging from frequent access to lowest-cost archive.", "Order the S3 classes from frequent access to deep archive."),
+    Card("stg-q5", 21, "Storage services", "What are the S3 Glacier retrieval options?", "Expedited (fastest, minutes), Standard (hours), and Bulk (cheapest, longest). Faster retrieval costs more, so match the tier to how quickly you need archived data.", "Pick Expedited, Standard, or Bulk based on retrieval urgency."),
+    Card("stg-q8", 21, "Storage services", "What are the three types of AWS Storage Gateway?", "File Gateway (presents S3 as NFS/SMB file shares), Volume Gateway (block storage backed by EBS snapshots), and Tape Gateway (virtual tape library for backup software).", "Match File, Volume, or Tape Gateway to a hybrid need."),
 ]
 
 
@@ -656,11 +671,12 @@ def interactive_menu(progress: dict) -> None:
         print("14. Global Accelerator")
         print("15. Key Management (KMS)")
         print("16. Control Tower")
-        print("17. Review missed cards")
-        print("18. Show topics")
-        print("19. Show progress")
-        print("20. Reset progress")
-        print("21. Launch visual flashcard mode (GUI)")
+        print("17. Storage")
+        print("18. Review missed cards")
+        print("19. Show topics")
+        print("20. Show progress")
+        print("21. Reset progress")
+        print("22. Launch visual flashcard mode (GUI)")
         print("0. Exit")
         choice = input("Choose an option: ").strip()
 
@@ -714,18 +730,21 @@ def interactive_menu(progress: dict) -> None:
                 count = read_count()
                 run_quiz(select_cards(topic="Control Tower"), shuffle=True, limit=count, progress=progress)
             elif choice == "17":
-                run_quiz(select_cards(missed_only=True, progress=progress), shuffle=True, limit=None, progress=progress)
+                count = read_count()
+                run_quiz(select_cards(topic="Storage"), shuffle=True, limit=count, progress=progress)
             elif choice == "18":
-                print_topics()
+                run_quiz(select_cards(missed_only=True, progress=progress), shuffle=True, limit=None, progress=progress)
             elif choice == "19":
-                print_stats(progress)
+                print_topics()
             elif choice == "20":
+                print_stats(progress)
+            elif choice == "21":
                 confirm = input("Reset all saved progress? Type RESET to confirm: ").strip()
                 if confirm == "RESET":
                     progress.clear()
                     save_progress(progress)
                     print("Progress reset.")
-            elif choice == "21":
+            elif choice == "22":
                 launch_gui(progress)
             elif choice == "0":
                 return
@@ -802,6 +821,7 @@ def launch_gui(progress: dict) -> bool:
         ("Global Accelerator", "Global Accelerator"),
         ("Key Management (KMS)", "Key Management"),
         ("Control Tower", "Control Tower"),
+        ("Storage", "Storage"),
     ]
     topic_search = dict(topic_choices)
     ttk.Label(top, text="Topic:").pack(side="left")
@@ -921,7 +941,7 @@ def launch_gui(progress: dict) -> bool:
         question_label.config(text=c.question)
         answer_label.config(text=c.answer)
         correct_var.set(session_grades.get(c.id, False))
-        set_reveal(c.id in session_grades)  # auto-reveal cards already graded this session
+        set_reveal(False)  # always start each card with the answer hidden
         update_status()
 
     def commit_current() -> None:
