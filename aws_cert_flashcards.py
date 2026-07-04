@@ -1050,6 +1050,22 @@ def launch_gui(progress: dict) -> bool:
         set_reveal(not state["revealed"])
         update_status()
 
+    def finish_deck() -> None:
+        # Deck finished: keep the window open so the user can pick another topic,
+        # change the filters, or click Shuffle to start again. Closing the window
+        # (the X button) is still how the user quits the app.
+        state["deck"] = []
+        state["index"] = 0
+        set_reveal(False)
+        focus_label.config(text="Deck complete")
+        counter_label.config(text="")
+        question_label.config(text="You've finished this deck. Pick another topic, adjust the filters, "
+                                   "or click Shuffle to start again.")
+        answer_label.config(text="")
+        for btn in (prev_btn, reveal_btn, wrong_btn, correct_btn):
+            btn.config(state="disabled")
+        status_label.config(text="")
+
     def end_of_deck() -> None:
         deck = state["deck"]
         total = len(deck)
@@ -1063,7 +1079,7 @@ def launch_gui(progress: dict) -> bool:
                 f"Correct: {correct}\n"
                 f"Not correct: {len(missed)}\n\n"
                 f"Review the {len(missed)} card(s) you did not get correct?\n"
-                f"(Yes = retake those cards, No = quit)",
+                f"(Yes = retake those cards, No = keep studying with another deck)",
             )
             if review:
                 session_grades.clear()  # reset the pass/fail counters for the retake round
@@ -1073,15 +1089,14 @@ def launch_gui(progress: dict) -> bool:
                 state["index"] = 0
                 show_card()
             else:
-                on_close()
+                finish_deck()
         else:
-            quit_now = messagebox.askyesno(
+            messagebox.showinfo(
                 "Deck complete",
                 f"You've gone through all {total} card(s) and got them all correct. Nice work!\n\n"
-                f"Quit now?\n(No keeps the window open.)",
+                f"Pick another topic or click Shuffle to keep studying.",
             )
-            if quit_now:
-                on_close()
+            finish_deck()
 
     def go(delta: int) -> None:
         if not state["deck"]:
