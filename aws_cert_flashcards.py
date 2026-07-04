@@ -436,6 +436,42 @@ CARDS = [
     Card("sec-q10", 23, "Security", "What is Amazon Cognito used for?", "Cognito provides authentication and authorization for web/mobile apps: User Pools manage sign-up/sign-in and a user directory, while Identity Pools grant authenticated users temporary AWS credentials to access AWS resources.", "Use a Cognito User Pool for app sign-in, Identity Pool for AWS access."),
     Card("sec-q11", 23, "Security", "Which service records API activity for auditing who did what?", "AWS CloudTrail logs all account API calls (who, when, from where, and which resources), which is the primary source for security auditing and incident investigation.", "Search CloudTrail to find who changed a resource."),
     Card("sec-q12", 23, "Security", "What is the difference between a security group and a network ACL?", "A security group is a stateful, instance/ENI-level firewall with allow-only rules (return traffic is automatic). A network ACL is a stateless, subnet-level firewall supporting both allow and deny rules (return traffic needs its own rule).", "Use SGs for instance rules, NACLs for subnet-wide allow/deny."),
+    # --- Managed Grafana ---
+    Card("grafana-q1", 24, "Managed Grafana", "What is Amazon Managed Grafana?", "A fully managed, scalable service based on open-source Grafana for visualizing, querying, and alerting on operational and observability data. AWS handles provisioning, scaling, patching, and high availability so you do not run Grafana servers yourself.", "Choose Managed Grafana to avoid operating your own Grafana instances."),
+    Card("grafana-q2", 24, "Managed Grafana", "Which data sources can Amazon Managed Grafana connect to?", "It natively connects to many AWS sources (CloudWatch, Amazon Managed Service for Prometheus, X-Ray, Timestream, OpenSearch, Athena, Redshift) plus third-party sources like Prometheus, Elasticsearch, InfluxDB, and Datadog. This lets you build unified dashboards across mixed backends.", "Point Managed Grafana at CloudWatch and Prometheus for a single dashboard."),
+    Card("grafana-q3", 24, "Managed Grafana", "How does Amazon Managed Grafana handle user authentication?", "It integrates with AWS IAM Identity Center (successor to AWS SSO) and SAML 2.0 identity providers for single sign-on, and uses role-based access (Admin, Editor, Viewer) to control what users can do in a workspace.", "Use IAM Identity Center or SAML for SSO into a Grafana workspace."),
+    Card("grafana-q4", 24, "Managed Grafana", "What is a Grafana 'workspace' in Amazon Managed Grafana?", "A workspace is a logically isolated, fully managed Grafana server instance where you configure data sources, dashboards, users, and alerts. Each workspace scales automatically and is billed per active user.", "Create separate workspaces to isolate teams or environments."),
+    Card("grafana-q5", 24, "Managed Grafana", "When would you choose Amazon Managed Grafana over Amazon CloudWatch dashboards?", "Choose Managed Grafana when you need rich, customizable visualizations across many data sources (including non-AWS and open-source backends) and open-source Grafana features. Use CloudWatch dashboards for simpler, AWS-native monitoring tied directly to CloudWatch metrics and logs.", "Pick Managed Grafana for multi-source, advanced visualization needs."),
+    # --- Exam Tips (SAA-C03 instructor-flagged callouts) ---
+    Card("tip-q1", 25, "Exam Tips", "IAM & root user: what should you always do (and never do)?", "IAM is a global service. Immediately enable MFA on the root user, never use root for daily tasks (create an IAM user instead), and never create access keys for the root user. The root account email must be globally unique across AWS accounts.", "Enable MFA on root, lock it away, and use IAM users day-to-day."),
+    Card("tip-q2", 25, "Exam Tips", "How should you assign permissions to IAM users?", "Best practice is to always assign permissions via groups, not directly to individual users. Users can belong to multiple groups (permissions are additive), but groups cannot be nested.", "Attach policies to a group, then add users to the group."),
+    Card("tip-q3", 25, "Exam Tips", "Key facts about IAM policy evaluation and policy types?", "Default is implicit deny — anything not explicitly allowed is denied. You must be able to read and interpret a policy JSON document on the exam. Prefer customer/AWS managed policies over inline. Resource-based policies are inline by nature (deleting the resource deletes the policy).", "Read the JSON: check Effect, Action, Resource, and Condition."),
+    Card("tip-q4", 25, "Exam Tips", "Access keys & credential reports tips?", "If a key pair is compromised, deactivate it immediately (you don't have to delete right away). Rotate keys and passwords regularly (commonly every 90 days). Credential reports only refresh with new data every 4 hours.", "Deactivate a leaked key first, then investigate."),
+    Card("tip-q5", 25, "Exam Tips", "IAM roles: the most repeated tips?", "Always prefer roles over long-term access keys. A role requires a trust policy (no trust = no one can assume it). EC2 instances need an instance profile attached to use a role. Remember the key action: sts:AssumeRole.", "Give EC2 an instance-profile role instead of storing access keys on it."),
+    Card("tip-q6", 25, "Exam Tips", "Which service gives a quick, pre-installed, pre-authenticated CLI environment?", "AWS CloudShell — a browser-based shell pre-authenticated with your current console credentials and pre-loaded with the AWS CLI, so you can run CLI tasks without configuring a local environment.", "Use CloudShell for a fast CLI task without local setup."),
+    Card("tip-q7", 25, "Exam Tips", "VPC tips on CIDR and the default VPC?", "Practice CIDR math — it comes up. Private RFC 1918 IP ranges are not publicly resolvable. Never leave production workloads in the default VPC.", "Build a custom VPC for production; don't use the default VPC."),
+    Card("tip-q8", 25, "Exam Tips", "How many IP addresses does AWS reserve per subnet?", "AWS reserves 5 IP addresses per subnet CIDR (for example, a /24 with 256 IPs leaves only 251 usable). This is commonly tested in capacity-planning questions.", "Subtract 5 usable IPs when sizing a subnet."),
+    Card("tip-q9", 25, "Exam Tips", "Security Group vs. NACL efficiency tips?", "You can reference a security group ID as the source in another SG's rule instead of an IP range — an efficient, common exam scenario. NACLs are a fast, cost-effective way to block malicious IP ranges across many resources at once.", "Reference an SG ID as source; use NACL deny rules to block bad IPs."),
+    Card("tip-q10", 25, "Exam Tips", "Can DHCP option sets be modified after creation?", "No — DHCP option sets cannot be modified once created. You must create a new set, associate it with the VPC, then remove the old one.", "Create a new DHCP option set instead of editing an existing one."),
+    Card("tip-q11", 25, "Exam Tips", "VPC peering gotchas?", "No overlapping CIDRs are allowed between peered VPCs. Peering is NOT transitive (A↔B and A↔C does not let B talk to C). You can reference peered VPC security group IDs (same region only). For connecting many VPCs to one shared service at scale, think AWS PrivateLink instead.", "For a hub of many consumers, use PrivateLink rather than a mesh of peers."),
+    Card("tip-q12", 25, "Exam Tips", "NAT Gateway tips?", "NAT Gateway is the go-to answer for 'private resources need secure outbound internet access.' You do NOT attach security groups to a NAT Gateway (a common trick question). Deploy one per AZ for high availability.", "One NAT Gateway per AZ; control access via subnet NACLs."),
+    Card("tip-q13", 25, "Exam Tips", "Gateway vs. Interface endpoint tips?", "S3 supports BOTH endpoint types (gateway = free, interface = more control/services). Gateway endpoints only work for S3 and DynamoDB — memorize this. Turn on private DNS so standard AWS service names automatically route through interface endpoints.", "Free gateway endpoint for S3/DynamoDB; interface endpoint for other services."),
+    Card("tip-q14", 25, "Exam Tips", "Which EC2 instance family is burstable?", "T-family instances are burstable — they can temporarily exceed baseline performance using CPU credits.", "Pick a T instance for spiky, low-average-utilization workloads."),
+    Card("tip-q15", 25, "Exam Tips", "EBS tips: IOPS vs. throughput and multi-attach?", "IOPS (reads/writes per second) → choose io1/io2. Throughput (MB/s moved) → choose st1. EBS Multi-Attach works only on provisioned IOPS volumes, up to 16 instances, same AZ only, and requires a cluster-aware file system.", "Databases/high-IOPS → io2; large sequential throughput → st1."),
+    Card("tip-q16", 25, "Exam Tips", "How do you encrypt an existing unencrypted EBS volume?", "You cannot directly encrypt an existing unencrypted volume — create a snapshot, then create a new encrypted volume from that snapshot. Snapshots are also how you move EBS data between AZs or regions.", "Snapshot → copy as encrypted → restore to get an encrypted volume."),
+    Card("tip-q17", 25, "Exam Tips", "Connecting to EC2: Session Manager, IMDS, and Bastion tips?", "Favor Session Manager over Bastion hosts in almost every scenario — no open inbound ports, most secure. Memorize the IMDS URL 169.254.169.254. Bastion hosts sit in a public subnet, and you can reference the bastion's SG ID as the allowed source in internal SGs.", "Default to Session Manager for secure, port-free access."),
+    Card("tip-q18", 25, "Exam Tips", "Which service extends AWS infrastructure into your own data center?", "AWS Outposts — available as Racks (42U, scalable) or Servers (1U/2U) for on-prem and edge locations.", "On-prem AWS hardware requirement = Outposts."),
+    Card("tip-q19", 25, "Exam Tips", "Highly scalable shared storage via NFS across many instances?", "Amazon EFS — managed NFS v4.1 file storage that automatically scales, supports thousands of concurrent connections, and spans multiple AZs for durability.", "Shared POSIX file system for many Linux instances = EFS."),
+    Card("tip-q20", 25, "Exam Tips", "Is Amazon S3 global or regional?", "The S3 service is global, but buckets are regional resources — explicitly called out as a tricky distinction. Bucket names are globally unique across all AWS accounts.", "Remember: global service, regional buckets, globally unique names."),
+    Card("tip-q21", 25, "Exam Tips", "What distinguishes the correct S3 Glacier tier in a scenario?", "Pay attention to retrieval time requirements — that usually determines the right tier: Glacier Instant Retrieval (ms), Flexible Retrieval (minutes to hours), Deep Archive (up to 48 hours).", "Match retrieval urgency to the Glacier tier."),
+    Card("tip-q22", 25, "Exam Tips", "S3 security: bucket policies or ACLs?", "Prefer bucket policies over ACLs whenever you have the choice.", "Reach for a bucket policy, not an ACL."),
+    Card("tip-q23", 25, "Exam Tips", "Route 53: latency-based vs. geolocation routing?", "The #1 confusion pair on the exam: Latency-based routing is performance-based (routes to the lowest-latency region); Geolocation routing is based on the origin location of the query (compliance/localization), NOT performance.", "Fastest response = latency; compliance/location = geolocation."),
+    Card("tip-q24", 25, "Exam Tips", "VPN keyword tips (Site-to-Site vs. Client VPN vs. CloudHub)?", "Need IPSec → Site-to-Site VPN. Need TLS/OpenVPN from any device → AWS Client VPN. Simplify managing several Site-to-Site VPNs → VPN CloudHub.", "Match the keyword (IPSec / TLS / many VPNs) to the right VPN type."),
+    Card("tip-q25", 25, "Exam Tips", "Direct Connect and encryption?", "Direct Connect connections are private but NOT encrypted by default — run a VPN over DX if encryption is required. This is a very commonly tested fact.", "Need DX plus encryption → layer a VPN over Direct Connect."),
+    Card("tip-q26", 25, "Exam Tips", "When should you choose Transit Gateway?", "If you see a requirement for IP multicast, or transitive routing between many VPCs and on-prem networks, think Transit Gateway.", "Many VPCs + transitive routing or multicast = Transit Gateway."),
+    Card("tip-q27", 25, "Exam Tips", "What do VPC Flow Logs actually capture?", "VPC Flow Logs give you traffic metadata, not packet contents — don't pick them for 'deep packet inspection' scenarios (use Traffic Mirroring for that).", "Deep packet inspection is not Flow Logs; use Traffic Mirroring."),
+    Card("tip-q28", 25, "Exam Tips", "Directory Services keyword tips?", "Need trusts → AWS Managed Microsoft AD (the only option that supports them). Must avoid caching AD data in the cloud → AD Connector. Need SSO across multiple AWS accounts → IAM Identity Center.", "Trusts=Managed AD; no caching=AD Connector; multi-account SSO=Identity Center."),
+    Card("tip-q29", 25, "Exam Tips", "Advanced IAM policy-evaluation tips?", "Explicit deny always wins, no matter what is allowed elsewhere. 'Confused deputy' in a question → use aws:ExternalID. Permissions boundaries restrict the maximum permissions; they never grant.", "Explicit deny beats everything; confused deputy → ExternalID."),
 ]
 
 
@@ -686,11 +722,13 @@ def interactive_menu(progress: dict) -> None:
         print("16. Control Tower")
         print("17. Storage")
         print("18. Security")
-        print("19. Review missed cards")
-        print("20. Show topics")
-        print("21. Show progress")
-        print("22. Reset progress")
-        print("23. Launch visual flashcard mode (GUI)")
+        print("19. Managed Grafana")
+        print("20. Exam Tips")
+        print("21. Review missed cards")
+        print("22. Show topics")
+        print("23. Show progress")
+        print("24. Reset progress")
+        print("25. Launch visual flashcard mode (GUI)")
         print("0. Exit")
         choice = input("Choose an option: ").strip()
 
@@ -750,18 +788,24 @@ def interactive_menu(progress: dict) -> None:
                 count = read_count()
                 run_quiz(select_cards(topic="Security"), shuffle=True, limit=count, progress=progress)
             elif choice == "19":
-                run_quiz(select_cards(missed_only=True, progress=progress), shuffle=True, limit=None, progress=progress)
+                count = read_count()
+                run_quiz(select_cards(topic="Managed Grafana"), shuffle=True, limit=count, progress=progress)
             elif choice == "20":
-                print_topics()
+                count = read_count()
+                run_quiz(select_cards(topic="Exam Tips"), shuffle=True, limit=count, progress=progress)
             elif choice == "21":
-                print_stats(progress)
+                run_quiz(select_cards(missed_only=True, progress=progress), shuffle=True, limit=None, progress=progress)
             elif choice == "22":
+                print_topics()
+            elif choice == "23":
+                print_stats(progress)
+            elif choice == "24":
                 confirm = input("Reset all saved progress? Type RESET to confirm: ").strip()
                 if confirm == "RESET":
                     progress.clear()
                     save_progress(progress)
                     print("Progress reset.")
-            elif choice == "23":
+            elif choice == "25":
                 launch_gui(progress)
             elif choice == "0":
                 return
@@ -840,6 +884,8 @@ def launch_gui(progress: dict) -> bool:
         ("Control Tower", "Control Tower"),
         ("Storage", "Storage"),
         ("Security", "Security"),
+        ("Managed Grafana", "Managed Grafana"),
+        ("Exam Tips", "Exam Tips"),
     ], key=lambda choice: choice[0].lower())
     topic_search = dict(topic_choices)
     ttk.Label(top, text="Topic:").pack(side="left")
