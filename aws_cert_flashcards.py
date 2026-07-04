@@ -472,6 +472,19 @@ CARDS = [
     Card("tip-q27", 25, "Exam Tips", "What do VPC Flow Logs actually capture?", "VPC Flow Logs give you traffic metadata, not packet contents — don't pick them for 'deep packet inspection' scenarios (use Traffic Mirroring for that).", "Deep packet inspection is not Flow Logs; use Traffic Mirroring."),
     Card("tip-q28", 25, "Exam Tips", "Directory Services keyword tips?", "Need trusts → AWS Managed Microsoft AD (the only option that supports them). Must avoid caching AD data in the cloud → AD Connector. Need SSO across multiple AWS accounts → IAM Identity Center.", "Trusts=Managed AD; no caching=AD Connector; multi-account SSO=Identity Center."),
     Card("tip-q29", 25, "Exam Tips", "Advanced IAM policy-evaluation tips?", "Explicit deny always wins, no matter what is allowed elsewhere. 'Confused deputy' in a question → use aws:ExternalID. Permissions boundaries restrict the maximum permissions; they never grant.", "Explicit deny beats everything; confused deputy → ExternalID."),
+    # --- Elastic Network Interface (ENI) ---
+    Card("eni-q1", 26, "ENI", "What is an Elastic Network Interface (ENI)?", "An ENI is a virtual network card you attach to an EC2 instance in a VPC — it gives the instance network connectivity within the VPC. Every EC2 instance has at least one primary ENI (eth0) that is created automatically and cannot be detached; most instance types can also have additional ENIs (the number depends on instance size).", "Think of an ENI as a virtual NIC that provides VPC connectivity to an instance."),
+    Card("eni-q2", 26, "ENI", "What attributes does an ENI carry?", "An ENI has one primary private IPv4 address plus optional secondary private IPs, an optional Elastic IP per private IP, an optional public IPv4 (assigned only at launch), optional IPv6 addresses, one or more security groups, a MAC address, a source/destination check flag, and a description. It belongs to a specific subnet (and therefore a specific AZ).", "An ENI bundles private IPs, EIPs, security groups, and a MAC into a movable unit."),
+    Card("eni-q3", 26, "ENI", "Why is an ENI described as a 'portable identity'?", "Because an ENI retains its attributes (private IP, EIP, security groups, MAC) when detached from one instance and reattached to another. This makes an IP address and its security-group rules something you can move between instances rather than tie to a single instance's lifecycle.", "ENI = portable identity: move an IP and its SG rules between instances."),
+    Card("eni-q4", 26, "ENI", "How can ENIs enable a low-cost high-availability / failover pattern?", "Create a secondary ENI with a fixed private IP and move (detach/reattach) it to a standby instance when the primary fails — all within the same AZ. This is the classic low-budget failover pattern that avoids Auto Scaling or Load Balancers.", "Detach and reattach a secondary ENI with a fixed private IP for cheap failover."),
+    Card("eni-q5", 26, "ENI", "What are common use cases for additional ENIs?", "Low-budget high-availability failover, a dedicated management network (admin/monitoring traffic separate from production), dual-homed instances on two subnets simultaneously (appliances, firewalls), network/security appliances presenting multiple IPs (NAT, proxy), and preserving a fixed private IP across instance changes.", "Use extra ENIs for failover, management traffic, dual-homing, and appliances."),
+    Card("eni-q6", 26, "ENI", "Can an ENI be moved between instances in different Availability Zones?", "No. An ENI lives in a specific subnet and therefore a specific AZ — it can only be attached to an instance in that same AZ. Moving across AZs is a common exam trap (the answer is always False).", "ENIs are AZ-bound; you cannot reattach one to an instance in another AZ."),
+    Card("eni-q7", 26, "ENI", "Can the primary ENI (eth0) be detached?", "No. The primary ENI is created automatically at launch and cannot be detached from the instance while it runs or otherwise. Only secondary ENIs can be detached and reattached (within the same AZ).", "The primary ENI (eth0) can never be detached; only secondary ENIs move."),
+    Card("eni-q8", 26, "ENI", "What is the difference between hot, warm, and cold attach for ENIs?", "Hot attach = attaching an ENI to a running instance. Warm attach = attaching to a stopped instance. Cold attach = attaching at launch time.", "Hot = running, warm = stopped, cold = at launch."),
+    Card("eni-q9", 26, "ENI", "How do public IPs behave when you detach and reattach an ENI?", "Private IPs and their associated Elastic IPs move with the ENI, but an auto-assigned public IPv4 address is only assigned at launch and is NOT portable — it is lost when the ENI is detached/reattached. Use an EIP if you need a persistent public IP.", "Private IPs/EIPs move with the ENI; auto-assigned public IPv4 does not persist."),
+    Card("eni-q10", 26, "ENI", "How is an ENI different from an ENA and an EFA?", "An ENI is a virtual network card. An Elastic Network Adapter (ENA) is the driver/technology for enhanced networking (higher throughput/PPS), not a virtual card. An Elastic Fabric Adapter (EFA) is a network interface for HPC/tightly-coupled workloads needing low-latency inter-node communication. All three are frequently confused on the exam.", "ENI = virtual NIC; ENA = enhanced-networking driver; EFA = HPC low-latency interface."),
+    Card("eni-q11", 26, "ENI", "Does attaching multiple ENIs increase an instance's network bandwidth?", "No. Adding ENIs does not inherently increase network throughput — bandwidth is determined by the instance type. Extra ENIs are about multiple IPs/interfaces and portability, not more bandwidth.", "More ENIs ≠ more bandwidth; throughput is set by instance type."),
+    Card("eni-q12", 26, "ENI", "How do you let one EC2 instance serve as a network appliance with separate management and data traffic on different subnets?", "Attach multiple ENIs to the instance, each placed in a different subnet — one for management traffic and one for data traffic. This dual-homes the instance across subnets.", "Attach multiple ENIs, each in a different subnet, to dual-home an appliance."),
 ]
 
 
@@ -578,13 +591,20 @@ def select_cards(
     progress: dict | None = None,
 ) -> list[Card]:
     topic_lower = topic.lower() if topic else None
+    # When the topic exactly names a card focus (as the menu items do), match on
+    # that focus so short names like "ENI" don't match substrings such as "denied".
+    exact_focus = bool(topic_lower and any(topic_lower == card.focus.lower() for card in CARDS))
     selected = []
     progress = progress or {}
     for card in CARDS:
         entry = progress.get(card.id, {})
         missed = entry.get("incorrect", 0) > entry.get("correct", 0)
-        if topic_lower and topic_lower not in card.focus.lower() and topic_lower not in card.question.lower():
-            continue
+        if topic_lower:
+            if exact_focus:
+                if topic_lower != card.focus.lower():
+                    continue
+            elif topic_lower not in card.focus.lower() and topic_lower not in card.question.lower():
+                continue
         if missed_only and not missed:
             continue
         selected.append(card)
@@ -724,11 +744,12 @@ def interactive_menu(progress: dict) -> None:
         print("18. Security")
         print("19. Managed Grafana")
         print("20. Exam Tips")
-        print("21. Review missed cards")
-        print("22. Show topics")
-        print("23. Show progress")
-        print("24. Reset progress")
-        print("25. Launch visual flashcard mode (GUI)")
+        print("21. ENI")
+        print("22. Review missed cards")
+        print("23. Show topics")
+        print("24. Show progress")
+        print("25. Reset progress")
+        print("26. Launch visual flashcard mode (GUI)")
         print("0. Exit")
         choice = input("Choose an option: ").strip()
 
@@ -794,18 +815,21 @@ def interactive_menu(progress: dict) -> None:
                 count = read_count()
                 run_quiz(select_cards(topic="Exam Tips"), shuffle=True, limit=count, progress=progress)
             elif choice == "21":
-                run_quiz(select_cards(missed_only=True, progress=progress), shuffle=True, limit=None, progress=progress)
+                count = read_count()
+                run_quiz(select_cards(topic="ENI"), shuffle=True, limit=count, progress=progress)
             elif choice == "22":
-                print_topics()
+                run_quiz(select_cards(missed_only=True, progress=progress), shuffle=True, limit=None, progress=progress)
             elif choice == "23":
-                print_stats(progress)
+                print_topics()
             elif choice == "24":
+                print_stats(progress)
+            elif choice == "25":
                 confirm = input("Reset all saved progress? Type RESET to confirm: ").strip()
                 if confirm == "RESET":
                     progress.clear()
                     save_progress(progress)
                     print("Progress reset.")
-            elif choice == "25":
+            elif choice == "26":
                 launch_gui(progress)
             elif choice == "0":
                 return
@@ -886,6 +910,7 @@ def launch_gui(progress: dict) -> bool:
         ("Security", "Security"),
         ("Managed Grafana", "Managed Grafana"),
         ("Exam Tips", "Exam Tips"),
+        ("ENI", "ENI"),
     ], key=lambda choice: choice[0].lower())
     topic_search = dict(topic_choices)
     ttk.Label(top, text="Topic:").pack(side="left")
