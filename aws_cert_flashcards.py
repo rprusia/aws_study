@@ -423,6 +423,19 @@ CARDS = [
     Card("stg-q4", 21, "Storage services", "What are the main Amazon S3 storage classes?", "Standard, Intelligent-Tiering, Standard-IA, One Zone-IA, Glacier Instant Retrieval, Glacier Flexible Retrieval, and Glacier Deep Archive, ranging from frequent access to lowest-cost archive.", "Order the S3 classes from frequent access to deep archive."),
     Card("stg-q5", 21, "Storage services", "What are the S3 Glacier retrieval options?", "Expedited (fastest, minutes), Standard (hours), and Bulk (cheapest, longest). Faster retrieval costs more, so match the tier to how quickly you need archived data.", "Pick Expedited, Standard, or Bulk based on retrieval urgency."),
     Card("stg-q8", 21, "Storage services", "What are the three types of AWS Storage Gateway?", "File Gateway (presents S3 as NFS/SMB file shares), Volume Gateway (block storage backed by EBS snapshots), and Tape Gateway (virtual tape library for backup software).", "Match File, Volume, or Tape Gateway to a hybrid need."),
+    # --- Security (SAA-C03 exam topics) ---
+    Card("sec-q1", 23, "Security", "What does AWS Shield protect against, and how do Standard and Advanced differ?", "AWS Shield defends against DDoS attacks. Shield Standard is free and automatic for all customers (layer 3/4 protection); Shield Advanced is paid and adds enhanced detection, 24/7 DDoS response team access, WAF at no extra cost, and cost-protection for scaling during attacks.", "Choose Shield Advanced for critical apps needing DDoS cost protection."),
+    Card("sec-q2", 23, "Security", "When do you use AWS WAF versus AWS Shield?", "Use AWS WAF to filter layer 7 (HTTP/HTTPS) requests with rules against SQL injection, XSS, bad bots, and rate-based floods. Use Shield for layer 3/4 DDoS protection. They complement each other on CloudFront, ALB, and API Gateway.", "Add WAF for app-layer filtering, Shield for DDoS."),
+    Card("sec-q3", 23, "Security", "What is Amazon GuardDuty?", "An intelligent threat-detection service that continuously analyzes CloudTrail, VPC Flow Logs, and DNS logs using ML to flag anomalies like compromised instances, crypto-mining, or credential exfiltration. It only detects and alerts; it does not block.", "Use GuardDuty findings to trigger an incident response."),
+    Card("sec-q4", 23, "Security", "What is Amazon Macie used for?", "Macie uses machine learning to discover, classify, and protect sensitive data (such as PII) stored in Amazon S3, and alerts on exposure or policy violations.", "Run Macie to find PII in S3 buckets."),
+    Card("sec-q5", 23, "Security", "What is Amazon Inspector?", "An automated vulnerability-management service that continuously scans EC2 instances, container images in ECR, and Lambda functions for software vulnerabilities (CVEs) and unintended network exposure.", "Scan EC2 and ECR images with Inspector for CVEs."),
+    Card("sec-q6", 23, "Security", "What is AWS Security Hub?", "A central dashboard that aggregates and prioritizes security findings from GuardDuty, Inspector, Macie, and partner tools, and runs automated compliance checks against standards like CIS and PCI DSS.", "Centralize multi-service findings in Security Hub."),
+    Card("sec-q7", 23, "Security", "When should you use Secrets Manager versus SSM Parameter Store?", "Use Secrets Manager for secrets that need built-in automatic rotation (for example RDS credentials); it has a per-secret cost. Use SSM Parameter Store (SecureString) for free/low-cost config and secrets when you do not need managed rotation.", "Pick Secrets Manager when automatic rotation is required."),
+    Card("sec-q8", 23, "Security", "What does AWS Certificate Manager (ACM) provide?", "ACM provisions, manages, and auto-renews free public SSL/TLS certificates for use with AWS services such as CloudFront, ALB, and API Gateway, enabling HTTPS/encryption in transit without manual renewals.", "Attach an ACM certificate to an ALB for HTTPS."),
+    Card("sec-q9", 23, "Security", "How do you encrypt data at rest versus in transit on AWS?", "Encrypt at rest with KMS-managed keys on services like S3 (SSE-KMS/SSE-S3), EBS, RDS, and DynamoDB. Encrypt in transit with TLS/SSL (for example ACM certificates on load balancers and HTTPS endpoints).", "Enable KMS at rest and TLS in transit for a workload."),
+    Card("sec-q10", 23, "Security", "What is Amazon Cognito used for?", "Cognito provides authentication and authorization for web/mobile apps: User Pools manage sign-up/sign-in and a user directory, while Identity Pools grant authenticated users temporary AWS credentials to access AWS resources.", "Use a Cognito User Pool for app sign-in, Identity Pool for AWS access."),
+    Card("sec-q11", 23, "Security", "Which service records API activity for auditing who did what?", "AWS CloudTrail logs all account API calls (who, when, from where, and which resources), which is the primary source for security auditing and incident investigation.", "Search CloudTrail to find who changed a resource."),
+    Card("sec-q12", 23, "Security", "What is the difference between a security group and a network ACL?", "A security group is a stateful, instance/ENI-level firewall with allow-only rules (return traffic is automatic). A network ACL is a stateless, subnet-level firewall supporting both allow and deny rules (return traffic needs its own rule).", "Use SGs for instance rules, NACLs for subnet-wide allow/deny."),
 ]
 
 
@@ -672,11 +685,12 @@ def interactive_menu(progress: dict) -> None:
         print("15. Key Management (KMS)")
         print("16. Control Tower")
         print("17. Storage")
-        print("18. Review missed cards")
-        print("19. Show topics")
-        print("20. Show progress")
-        print("21. Reset progress")
-        print("22. Launch visual flashcard mode (GUI)")
+        print("18. Security")
+        print("19. Review missed cards")
+        print("20. Show topics")
+        print("21. Show progress")
+        print("22. Reset progress")
+        print("23. Launch visual flashcard mode (GUI)")
         print("0. Exit")
         choice = input("Choose an option: ").strip()
 
@@ -733,18 +747,21 @@ def interactive_menu(progress: dict) -> None:
                 count = read_count()
                 run_quiz(select_cards(topic="Storage"), shuffle=True, limit=count, progress=progress)
             elif choice == "18":
-                run_quiz(select_cards(missed_only=True, progress=progress), shuffle=True, limit=None, progress=progress)
+                count = read_count()
+                run_quiz(select_cards(topic="Security"), shuffle=True, limit=count, progress=progress)
             elif choice == "19":
-                print_topics()
+                run_quiz(select_cards(missed_only=True, progress=progress), shuffle=True, limit=None, progress=progress)
             elif choice == "20":
-                print_stats(progress)
+                print_topics()
             elif choice == "21":
+                print_stats(progress)
+            elif choice == "22":
                 confirm = input("Reset all saved progress? Type RESET to confirm: ").strip()
                 if confirm == "RESET":
                     progress.clear()
                     save_progress(progress)
                     print("Progress reset.")
-            elif choice == "22":
+            elif choice == "23":
                 launch_gui(progress)
             elif choice == "0":
                 return
@@ -822,6 +839,7 @@ def launch_gui(progress: dict) -> bool:
         ("Key Management (KMS)", "Key Management"),
         ("Control Tower", "Control Tower"),
         ("Storage", "Storage"),
+        ("Security", "Security"),
     ], key=lambda choice: choice[0].lower())
     topic_search = dict(topic_choices)
     ttk.Label(top, text="Topic:").pack(side="left")
@@ -911,8 +929,11 @@ def launch_gui(progress: dict) -> bool:
     def update_title() -> None:
         passed = sum(1 for v in session_grades.values() if v)
         failed = sum(1 for v in session_grades.values() if not v)
-        root.title(f"AWS SAA-C03 Flashcards  —  Correct: {passed}  |  Wrong: {failed}")
-        score_label.config(text=f"Correct: {passed}  |  Wrong: {failed}")
+        graded = passed + failed
+        pct = round(passed / graded * 100) if graded else 0
+        text = f"Correct: {passed}  |  Wrong: {failed}  |  {pct}%"
+        root.title(f"AWS SAA-C03 Flashcards  —  {text}")
+        score_label.config(text=text)
 
     def update_status() -> None:
         c = current_card()
